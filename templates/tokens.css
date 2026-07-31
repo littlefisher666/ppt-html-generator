@@ -46,9 +46,11 @@
   --stage-w: 1600px;
   --stage-h: 900px;
   --master-left: 86.67px;
-  --master-content-top: 171.67px;
+  --master-title-width: 1117.33px;
+  --master-subtitle-width: 1425px;
+  --master-content-top: 207px;
   --master-content-width: 1425px;
-  --master-content-height: 639px;
+  --master-content-height: 603.67px;
 }
 
 * {
@@ -207,19 +209,31 @@ li {
 .slide-heading {
   position: absolute;
   left: var(--master-left);
-  top: 16px;
+  top: 0;
   z-index: 5;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 4px;
-  width: 1085px;
-  height: 112px;
+  width: var(--master-content-width);
+  height: var(--master-content-top);
 }
 
-/* 内容页主标题遵循白底母版，默认使用黑色。 */
+/* 内容页主标题位于横线上方，右侧为 Logo 预留安全距离。 */
 .layout-content .slide-heading h1 {
+  position: absolute;
+  left: 0;
+  top: 47px;
+  width: var(--master-title-width);
+  max-width: var(--master-title-width);
+  white-space: nowrap;
   color: #000000;
+}
+
+/* 副标题固定在横线下方，最长不超过正文安全区的右边界。 */
+.slide-heading .subtitle {
+  position: absolute;
+  left: 0;
+  top: 154px;
+  width: var(--master-subtitle-width);
+  max-width: var(--master-subtitle-width);
+  white-space: nowrap;
 }
 
 .slide-content {
@@ -489,12 +503,21 @@ li {
 }
 
 .agenda-list {
+  --agenda-item-height: 75.59px;
+  --agenda-item-gap: 43.02px;
+  --agenda-number-radius: 12.6px;
+  --agenda-item-padding-y: 6px;
+  --agenda-item-text-gap: 41.52px;
+  --agenda-number-border: 3.33px;
+  --agenda-number-font-size: var(--t-28);
   position: absolute;
   left: 680.84px;
-  top: 148.33px;
+  /* 以左侧“目录”标题的中心线为基准，使不同数量的条目作为整体对齐。 */
+  top: 444.11px;
+  transform: translateY(-50%);
   display: grid;
-  grid-auto-rows: 75.59px;
-  row-gap: 43.02px;
+  grid-auto-rows: var(--agenda-item-height);
+  row-gap: var(--agenda-item-gap);
   width: 708.66px;
   margin: 0;
   padding: 0;
@@ -506,10 +529,11 @@ li {
   display: flex;
   align-items: center;
   min-width: 0;
-  height: 75.59px;
-  padding: 6px 12px 6px 117.11px;
+  height: var(--agenda-item-height);
+  padding: var(--agenda-item-padding-y) 12px var(--agenda-item-padding-y)
+    calc(var(--agenda-item-height) + var(--agenda-item-text-gap));
   border: 1.25px solid transparent;
-  border-radius: 12.6px;
+  border-radius: var(--agenda-number-radius);
   background:
     linear-gradient(90deg, rgba(90, 162, 174, 0.15) 15%, rgba(90, 162, 174, 0) 86%) padding-box,
     linear-gradient(var(--paper), var(--paper)) padding-box,
@@ -524,12 +548,12 @@ li {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 75.59px;
-  height: 75.59px;
-  border: 3.33px solid var(--hengda-accent-1);
-  border-radius: 12.6px;
+  width: var(--agenda-item-height);
+  height: var(--agenda-item-height);
+  border: var(--agenda-number-border) solid var(--hengda-accent-1);
+  border-radius: var(--agenda-number-radius);
   background: var(--hengda-accent-1);
-  font-size: var(--t-28);
+  font-size: var(--agenda-number-font-size);
   line-height: 1;
   font-weight: var(--w-regular);
   color: var(--paper);

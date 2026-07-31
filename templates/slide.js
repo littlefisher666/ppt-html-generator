@@ -61,6 +61,37 @@
     return link;
   }
 
+  function configureAgendaList() {
+    var list = document.querySelector(".agenda-list");
+    if (!list) return;
+
+    var maxItems = 12;
+    var allItems = Array.prototype.slice.call(list.children).filter(function (item) {
+      return item.tagName === "LI";
+    });
+    var count = allItems.length;
+    if (count > maxItems) {
+      list.setAttribute("data-agenda-overflow", "true");
+      console.error("单个目录页最多允许 12 项；请创建目录续页并均分目录项。");
+      return;
+    }
+
+    if (count <= 6) return;
+
+    var compression = (count - 6) / 6;
+    var itemHeight = 75.59 - 27.59 * compression;
+    var itemGap = 43.02 - 31.02 * compression;
+    var scale = itemHeight / 75.59;
+
+    list.style.setProperty("--agenda-item-height", itemHeight.toFixed(2) + "px");
+    list.style.setProperty("--agenda-item-gap", itemGap.toFixed(2) + "px");
+    list.style.setProperty("--agenda-number-radius", (12.6 * scale).toFixed(2) + "px");
+    list.style.setProperty("--agenda-item-padding-y", (6 * scale).toFixed(2) + "px");
+    list.style.setProperty("--agenda-item-text-gap", (41.52 * scale).toFixed(2) + "px");
+    list.style.setProperty("--agenda-number-border", (3.33 * scale).toFixed(2) + "px");
+    list.style.setProperty("--agenda-number-font-size", "var(--t-20)");
+  }
+
   function buildNavigation() {
     var slideElement = document.querySelector(".slide");
     var deck = window.PPT_HTML_DECK;
@@ -140,6 +171,6 @@
 
   window.addEventListener("resize", fit);
   fit();
+  configureAgendaList();
   buildNavigation();
 })();
-
