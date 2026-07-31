@@ -49,8 +49,6 @@
 - [ ] `font-weight` 仅为 400/700；`line-height` 使用 1.2、1.3、1.5 等简单倍率；
   中文正文没有用于“塞字”的细碎字距。
 - [ ] `.dense` 通过降低一个 token 档位、缩小 padding/gap 处理密度，未用非法小字。
-- [ ] 内容页先完成图片清单与原始尺寸/长宽比确认，再依据长宽比建立媒体框并排入正文安全区；文字、
-  表格和卡片只使用媒体框之外的剩余空间。
 - [ ] 内容页项目图片保持原始长宽比并完整可见：媒体框使用明确的 `aspect-ratio` 或等价同比尺寸，
   `object-fit` 为 `contain` 或等价实现；不得使用 `fill` 拉伸或 `cover` 裁剪。母版规定的背景图和
   Logo 不适用本项，仍按母版映射验收。
@@ -84,6 +82,11 @@
 - [ ] 关键文字距装饰框内缘保留约 20–28px 安全区；页脚/页码在画布内且不和主内容相交。
 - [ ] 恒达内容页保留右上彩色 Logo、三段母版横线、标题区和正文安全区；封面、目录、
   章节、封底使用各自对应的母版素材与 Logo 版本，而不是仅套相似配色。
+- [ ] 封面、过渡页（章节页）和封底的背景图没有被替换、遮蔽或重定义：分别且仅引用
+  `assets/brand/cover-campus.jpg`、`assets/brand/section-campus-night.png`、
+  `assets/brand/closing-digital-globe.jpg`。运行 `node scripts/verify-hengda-assets.mjs <deck>/assets/brand --deck <deck>`
+  后三张文件的 manifest 哈希必须通过；同时检查 `assets/ppt.css`、页内 `<style>` 与 `style` 属性，
+  不存在对 `.layout-cover`、`.layout-section`、`.layout-closing` 的背景图覆盖。
 - [ ] 封面标题允许换行且在母版标题框内底对齐；最后一行底部距 `y=461.4px` 横线约
   8–16px，没有因固定顶对齐产生大空隙。
 - [ ] 目录页保持母版版式级的浅蓝到白色纵向渐变；顶部合成色约为 `#DDEAF9`，底部为
