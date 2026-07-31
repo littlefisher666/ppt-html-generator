@@ -1,0 +1,4 @@
+interface:
+  display_name: "恒达智控 HTML 幻灯片"
+  short_description: "用恒达母版生成可转 PPT 的 HTML 幻灯片并自动验收"
+  default_prompt: "使用 $ppt-html-generator 按恒达智控母版生成带目录、底部导航和键盘翻页的 HTML 幻灯片，并完成 QA。"

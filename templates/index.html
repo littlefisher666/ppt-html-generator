@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>幻灯片目录</title>
+  <link rel="stylesheet" href="assets/ppt.css" />
+</head>
+<body class="deck-index">
+  <main class="deck-index__main">
+    <header class="deck-index__header">
+      <img src="assets/hengda/logo-color.png" alt="恒达智控" />
+      <div>
+        <p>SLIDE INDEX</p>
+        <h1 id="deck-title">幻灯片目录</h1>
+      </div>
+    </header>
+
+    <ol id="slide-list" class="slide-index" aria-label="幻灯片列表"></ol>
+    <noscript>需要启用 JavaScript 才能读取幻灯片目录。</noscript>
+  </main>
+
+  <script src="assets/deck.js"></script>
+  <script>
+    (function () {
+      var deck = window.PPT_HTML_DECK || { title: "幻灯片目录", slides: [] };
+      var title = document.getElementById("deck-title");
+      var list = document.getElementById("slide-list");
+
+      title.textContent = deck.title || "幻灯片目录";
+      document.title = (deck.title || "幻灯片") + " · 目录";
+
+      deck.slides.forEach(function (slide, index) {
+        var item = document.createElement("li");
+        var link = document.createElement("a");
+        var page = document.createElement("span");
+        var copy = document.createElement("span");
+        var mainTitle = document.createElement("strong");
+        var subtitle = document.createElement("span");
+
+        link.href = slide.href;
+        page.className = "slide-index__page";
+        copy.className = "slide-index__copy";
+        mainTitle.className = "slide-index__title";
+        subtitle.className = "slide-index__subtitle";
+
+        page.textContent = String(slide.page || index + 1).padStart(2, "0");
+        mainTitle.textContent = slide.title || "未命名页面";
+        subtitle.textContent = slide.subtitle || "";
+
+        copy.appendChild(mainTitle);
+        copy.appendChild(subtitle);
+        link.appendChild(page);
+        link.appendChild(copy);
+        item.appendChild(link);
+        list.appendChild(item);
+      });
+    })();
+  </script>
+</body>
+</html>
