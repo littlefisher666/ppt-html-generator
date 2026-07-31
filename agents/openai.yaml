@@ -1,4 +1,4 @@
 interface:
-  display_name: "恒达智控 HTML 幻灯片"
-  short_description: "用恒达母版生成可转 PPT 的 HTML 幻灯片并自动验收"
-  default_prompt: "使用 $ppt-html-generator 按恒达智控母版生成带目录、底部导航和键盘翻页的 HTML 幻灯片，并完成 QA。"
+  display_name: "多品牌 HTML 幻灯片"
+  short_description: "按公司母版与目标系统字体生成可转 PPT 的 HTML 幻灯片并自动验收"
+  default_prompt: "使用 $ppt-html-generator 生成带目录、底部导航和键盘翻页的 HTML 幻灯片；先确认使用恒达智控、创信数智还是郑煤机母版，再选择目标系统已安装的微软雅黑、宋体、仿宋或其他字体，最后完成 QA。"

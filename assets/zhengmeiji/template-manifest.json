@@ -1,0 +1,16 @@
+{
+  "brand": "郑煤机",
+  "source": "郑煤机母版（仅用于一次性解析，原始 PPTX 不随 skill 分发）",
+  "sourceFile": "郑煤机母版.pptx",
+  "sourceSha256": "342b2a4c4dd879ba40b9490cfb57cbea415b6c01573e7cd8c3e1381c6068e76d",
+  "canvas": { "pptEmu": [12192000, 6858000], "htmlPx": [1600, 900], "emuPerPx": 7620 },
+  "assets": {
+    "cover": { "file": "cover-campus.jpg", "sha256": "9ce0cbbf57853ca862f608aebf61c2fd1013bdcc2120b6dce72b2986e9e6621e" },
+    "logoWhite": { "file": "logo-white.png", "sha256": "f3a157f2470c5a6560bbea4f16b3be133c6424e0f4415e0080e3407e4d7397f4" },
+    "agenda": { "file": "agenda-welding.jpg", "sha256": "c8a8e0edc4a1e1e804a8d05e51bbf6a4b80c1136fbb09b37e9feb14c9cb2de96" },
+    "logoColor": { "file": "logo-color.png", "sha256": "1f9af995599f464af5a05d74d1470d6362018566a03487d141b0da3c80d21558" },
+    "section": { "file": "section-campus-night.png", "sha256": "8e05073bd627d9b3f7bf70067329b758a64b8d556e2b6258fd2afb6e3be89dfc" },
+    "closing": { "file": "closing-digital-globe.jpg", "sha256": "667387c2fb1c118c763708d5067cd516b8fb32fc670d5354e25fad3cac5ff3c8" },
+    "texture": { "file": "theme-texture.jpg", "sha256": "3f063ba99d81b652dd71d69bdceaa70641df23d6cb3a940e9609fd5080708c7e" }
+  }
+}

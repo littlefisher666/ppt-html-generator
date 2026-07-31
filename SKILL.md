@@ -1,31 +1,41 @@
 ---
 name: ppt-html-generator
 description: >
-  Generate, inspect, and repair Hengda Intelligent Control branded PPT-compatible
-  HTML slide decks on a fixed 1600×900 canvas. Use the bundled, pre-extracted Hengda
-  master mapping, theme tokens, logos, and media assets as the required visual source;
+  Generate, inspect, and repair PPT-compatible HTML slide decks for Hengda Intelligent
+  Control, Chuangxin Digital Intelligence, or Zhengzhou Coal Mining Machinery on a fixed
+  1600×900 canvas. First require the user to select the company and a system-installed font,
+  then use its bundled,
+  pre-extracted master mapping, theme tokens, logos, and media assets as the required visual source;
   scaffold index.html plus a single slide manifest; and provide bottom-center
   current-page, previous, next, and home navigation with arrow-key paging. Always run
   the integrated QA and repair discovered issues. Use for ppt-html, HTML-to-PPT slide
-  authoring, 1600×900 HTML slides, 恒达智控母版, HTML 幻灯片目录, 幻灯片键盘翻页,
+  authoring, 1600×900 HTML slides, 恒达智控母版, 创信数智母版, 郑煤机母版, HTML 幻灯片目录, 幻灯片键盘翻页,
   slide overflow/alignment/image-crop checks, or /ppt-html-generator.
 ---
 
-# 恒达智控 PPT-Compatible HTML Generator
+# 多品牌 PPT-Compatible HTML Generator
 
 生成、修改和验收可转换为 PowerPoint 的 HTML 幻灯片。把 HTML 作为编辑面，
-把 `references/hengda-template.md` 与 `assets/hengda/` 中预先解析的母版映射和素材
-作为唯一视觉来源，把整数 `pt` 意图作为字体真值。原始 PPTX 只作为复核源，不是运行时
-依赖；若用户临时放回 PPTX，始终只读使用并原地保留，只有用户明确确认后才可删除。
+先确认用户要使用的公司：**恒达智控、创信数智或郑煤机**，再确认字体。未明确公司时，必须先问：
+“请确认本次使用哪个公司母版：恒达智控、创信数智，还是郑煤机？”得到选择后才可生成
+页面或复制素材。公司确认后，必须询问：
+“请确认本次使用字体：微软雅黑、宋体、仿宋，或输入其他已安装字体。该字体必须安装在最终打开
+HTML 的操作系统中；未安装时浏览器将回退到其他字体，无法保证效果。”把所选公司的母版映射与素材
+作为唯一视觉来源，把整数 `pt` 意图作为字体真值。
+原始 PPTX 只作为复核源，不是运行时依赖；若用户临时放回 PPTX，始终只读使用并原地保留，
+只有用户明确确认后才可删除。
 
-执行顺序：**读取/准备母版映射 → 建立目录与清单 → 生成各页 → 全量 QA → 修复 → 回归 → 交付**。
+执行顺序：**确认公司与字体 → 读取/准备母版映射 → 建立目录与清单 → 生成各页 → 全量 QA → 修复 → 回归 → 交付**。
 不得把 QA 留给用户，也不得在 QA 未通过时宣布完成。
 
 ## 强制交付契约
 
-1. 始终使用 [references/hengda-template.md](references/hengda-template.md) 记录的母版、版式、
-   主题色、字体意图，以及 `assets/hengda/` 的 Logo 和对应场景素材；不得换成另一套模板
-   或仅“参考配色”。
+1. 始终使用所选公司的映射和素材：恒达智控对应
+   [references/hengda-template.md](references/hengda-template.md) 与 `assets/hengda/`，创信数智对应
+   [references/chuangxin-template.md](references/chuangxin-template.md) 与 `assets/chuangxin/`，郑煤机对应
+   [references/zhengmeiji-template.md](references/zhengmeiji-template.md) 与 `assets/zhengmeiji/`。这些目录中的
+   manifest 可解析同目录素材或 `assets/shared/` 的逐字节相同公共素材；不得混用公司专属 Logo、
+   换成另一套模板，或仅“参考配色”。
 2. 先阅读母版映射，再生成页面。不要把原始 PPTX 复制进输出 deck；若复核源存在，只读
    解析且不得擅自删除、移动或覆盖。
 3. 每个 deck 必须包含 `index.html`。目录只列每页的**页码、主标题、副标题**，
@@ -37,6 +47,11 @@ description: >
    `ArrowLeft`、`ArrowUp` 到上一页，`ArrowRight`、`ArrowDown` 到下一页。
 6. 导航属于浏览器预览 UI，保留在 HTML 截图验收中，但在打印/PPT 导出时隐藏，
    不得成为 PPT 页面内容。
+7. 生成前必须确认字体。提供“微软雅黑、宋体、仿宋”三个默认选项，并允许用户输入其他字体名称；
+   必须提示用户：字体仅在最终操作系统已安装时可用，未安装会触发浏览器回退，不能把回退效果
+   当作所选字体的验收结果。除非用户明确提供可合法使用的字体文件，否则不得下载、嵌入或伪造字体。
+   用户选定后，必须运行 `node scripts/check-system-font.mjs "<fontFamily>"` 检查当前系统；
+   成功才可应用字体，失败时要求用户安装或重选，不得静默继续。
 
 ## 固定画布与坐标
 
@@ -44,7 +59,7 @@ description: >
 |---|---:|
 | HTML 舞台 | `1600 × 900` px |
 | PPT 页面 | `13.333″ × 7.5″` |
-| 恒达母版 | `12192000 × 6858000` EMU |
+| 三公司共用母版 | `12192000 × 6858000` EMU |
 | 母版坐标换算 | `1 HTML px = 7620 EMU` |
 | 字体换算 | `pt = px × 0.6`；`px = pt × 5/3` |
 
@@ -60,13 +75,25 @@ h_in = h_px / 120
 
 ## 字体与主题
 
-- 优先匹配恒达母版：主题中文字体为宋体，目录版式包含微软雅黑；使用模板 CSS 中的跨平台回退栈。
+- 公司选择完成后必须确认字体。默认可选项及推荐 CSS 字体栈为：微软雅黑
+  `"Microsoft YaHei", "微软雅黑", sans-serif`、宋体
+  `"SimSun", "宋体", "Songti SC", serif`、仿宋
+  `"FangSong", "仿宋", "STFangsong", serif`。自定义字体使用用户提供的字体名称，并添加合理的
+  `serif` 或 `sans-serif` 通用族后备。
+- 所选字体必须存在于最终打开 HTML 的操作系统中；当前开发环境存在该字体不代表交付环境存在。
+  若无法核验目标系统，只能记录“待目标系统确认”，不得声称字体已可用。不要仅因浏览器显示了文字
+  就认定选定字体生效。
+- 字体选择后运行 `node scripts/check-system-font.mjs "<fontFamily>"`。该脚本支持 macOS
+  （`system_profiler`）、Linux（`fc-list`）和 Windows（PowerShell 的已安装字体集合）；默认字体
+  的中英文名称与常见别名会一并匹配。检查失败或当前系统无法枚举字体时，停止并要求用户安装或重选。
+- 将选定字体栈同时写入 `assets/ppt.css` 的 `--font-heading`、`--font-body` 和 `--font-ui`；不要在
+  页面内单独覆盖字体，保证标题、正文、目录与导航的字体一致。
 - 内容页标题按母版 `32pt` 意图，默认使用黑色（`#000000`）；封面标题 `40pt`，封面副标题
   `24pt`，章节标题 `32pt`，封底标题 `80pt`、副标题 `18pt`。
 - 内容角色只使用共享整数 pt token。正文按内容角色使用 `14/16/18/20pt`；
   不得用 `15px`、`17px`、半像素或任意页内字号硬塞。
 - 只使用 `400/700` 字重和简单行高；标题过长时先缩短文案或换版式。
-- 详细换算和反例见 [references/typography.md](references/typography.md)。恒达母版的明确字号
+- 详细换算和反例见 [references/typography.md](references/typography.md)。所选母版的明确字号
   优先于通用建议，但仍必须映射到整数 pt。
 
 ## 标准文件结构
@@ -78,7 +105,7 @@ ppt-html/
     ppt.css
     deck.js
     slide.js
-    hengda/
+    brand/
       cover-campus.jpg
       logo-white.png
       agenda-welding.jpg
@@ -97,21 +124,30 @@ ppt-html/
 
 ## 生成流程
 
-### 1. 确定内容与输出目录
+### 1. 确认公司、字体、内容与输出目录
 
-收集主题、大纲、来源、语言和交付目标。缺省输出到项目现有 `ppt-html/`；若不存在，
-创建 `ppt-html/`。只在答案会实质改变结构且无法从上下文判断时提问。
+先确认公司。若用户未指明，必须询问“请确认本次使用哪个公司母版：恒达智控、创信数智，
+还是郑煤机？”。将其转换为脚本参数：恒达智控=`hengda`，创信数智=`chuangxin`，
+郑煤机=`zhengmeiji`。公司确认后，询问“请确认本次使用字体：微软雅黑、宋体、仿宋，或输入其他
+已安装字体。该字体必须安装在最终打开 HTML 的操作系统中；未安装时浏览器会回退，无法保证效果。”
+用户选定字体后，将其记为 `fontFamily`，并在交付报告中记录字体名称和目标系统可用性。
+立即运行 `node scripts/check-system-font.mjs "<fontFamily>"`：成功后才进入素材准备；失败时向用户
+说明当前系统未安装或无法检查该字体，并要求安装或重新选择。该检查只证明当前系统，仍须提示用户
+确认最终交付系统也安装了该字体。
+随后收集主题、大纲、来源、语言和交付目标。缺省输出到项目现有
+`ppt-html/`；若不存在，创建 `ppt-html/`。只在答案会实质改变结构且无法从上下文判断时提问。
 
-### 2. 准备恒达母版素材
+### 2. 准备所选公司母版素材
 
 从技能目录运行：
 
 ```bash
-bash scripts/prepare-hengda-assets.sh <deck-output-directory>
+bash scripts/prepare-brand-assets.sh <deck-output-directory> <hengda|chuangxin|zhengmeiji>
 ```
 
-脚本从 skill 内置的 `assets/hengda/` 复制 7 个已解析、已语义化命名的素材及来源清单。
-不得手工截图 Logo、从网络重新下载品牌图或把绝对路径写进 HTML。
+脚本先从所选公司的内置目录读取素材，缺失时仅从 `assets/shared/` 读取经 manifest 哈希确认的
+公共素材；随后复制 7 个已解析、已语义化命名的素材及来源清单到输出 deck 的 `assets/brand/`。
+不得手工截图 Logo、从网络重新下载品牌图、混用公司资源或把绝对路径写进 HTML。
 
 ### 3. 建立共享基础文件
 
@@ -123,6 +159,9 @@ bash scripts/prepare-hengda-assets.sh <deck-output-directory>
 - `templates/index.html` → `index.html`
 - `templates/cover-shell.html`、`agenda-shell.html`、`section-shell.html`、
   `slide-shell.html`、`closing-shell.html` → 对应角色页面的起点
+
+复制 `tokens.css` 后，立即将所选 `fontFamily` 写入 `--font-heading`、`--font-body` 和
+`--font-ui`。仅保留所选字体名与通用族后备；不得保留其他默认字体在前面抢占匹配顺序。
 
 已有 deck 先读取现有 CSS、JS、目录和页面清单，在原实现上增补；不要引入平行的导航器、
 第二份 manifest 或另一套视觉语言。
@@ -168,8 +207,9 @@ window.PPT_HTML_DECK = {
 
 版式的不可变约束：
 
-- 封面标题使用母版标题框并允许换行，标题框按底对齐；最后一行底部与 `y=461.4px`
-  横线保持约 9px 间距，不能因单行或多行标题留下大块空白。
+- 封面标题使用母版标题框并按内容自然换行，标题框按底对齐；不得为了贴近横线而手工
+  插入 `<br>` 或强制拆成两行。最后一行底部与 `y=461.4px` 横线保持约 9px 间距，不能因
+  单行或多行标题留下大块空白。
 - 目录页严格保留母版对象的可见性：版式级背景使用由浅蓝到白色的纵向渐变；焊接图及其
   两层前景渐变在 OOXML 中均为 `hidden="1"`，默认不得显示。左侧保留竖排
   `CONTENTS` 和“目—圆形箭头—录”组合；两个汉字、外圆共用中心轴且上下间距对称，
@@ -199,7 +239,7 @@ window.PPT_HTML_DECK = {
 - 把标题、正文、表格、图像写成独立语义盒，方便后续映射为 PPT shape。
 - 内容页正文留在母版安全区，底部额外预留导航 UI 区域；不要用全局裁切掩盖溢出。
 - 照片可裁切时用 `cover`；必须完整显示时用 `contain`；结构图只有明确允许形变时才用 `fill`。
-- 母版素材只从 `assets/hengda/` 引用，项目内容素材只从 `assets/media/` 引用。
+- 母版素材只从 `assets/brand/` 引用，项目内容素材只从 `assets/media/` 引用。
 - 每页先加载 `../assets/deck.js`，再加载 `../assets/slide.js`。`slide.js` 自动注入导航；
   不在每页复制导航逻辑。
 
@@ -223,7 +263,7 @@ window.PPT_HTML_DECK = {
 2. 优先复用项目 `scripts/audit-ppt-html.mjs`；不存在时按
    [references/qa-checklist.md](references/qa-checklist.md) 完成静态扫描、DOM 量测、
    交互测试和截图验收。
-3. 运行 `node scripts/verify-hengda-assets.mjs <deck>/assets/hengda`，确认内置素材
+3. 运行 `node scripts/verify-hengda-assets.mjs <deck>/assets/brand`，确认内置素材
    `7/7`、哈希一致且没有未登记文件。
 4. 为每页渲染原始尺寸截图并逐页查看。自动检查“0 问题”不能替代截图结论。
 5. 检查模板忠实度、所有文字/祖先裁切、重叠、画布越界、图片策略、底部空白、目录顺序和导航。
@@ -239,7 +279,7 @@ window.PPT_HTML_DECK = {
 
 ```markdown
 ## ppt-html 检查报告
-- 母版映射：references/hengda-template.md
+- 母版映射：所选公司的 `references/{hengda|chuangxin|zhengmeiji}-template.md`
 - 画布：1600×900
 - 页数：N
 - 目录：N 项，与 deck.js 一致
@@ -247,9 +287,10 @@ window.PPT_HTML_DECK = {
 - 结果：通过 / 有问题已修 / 仍有阻塞
 
 ### 资源
-- 恒达内置素材：7/7（manifest 校验：通过/失败）
+- 所选公司内置素材：7/7（manifest 校验：通过/失败）
 - 项目 media：X（与引用一致：是/否）
 - 外部路径：0
+- 字体：`fontFamily`（目标操作系统已安装：是 / 用户待确认）
 
 ### 截图
 - exports/audit-xxx/
@@ -259,7 +300,7 @@ window.PPT_HTML_DECK = {
 
 ## 禁止模式
 
-1. 未读取恒达母版映射、未复制内置素材就生成另一套“相似蓝色”设计。
+1. 未确认公司、未读取对应母版映射或未复制所选公司内置素材就生成另一套“相似蓝色”设计。
 2. 只复用 Logo，不复用对应母版结构、版式素材和字体/颜色意图。
 3. 在 `index.html` 放缩略图、摘要、标签或页面正文。
 4. 每页复制一套顺序或导航代码，导致目录与翻页不一致。

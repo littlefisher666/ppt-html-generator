@@ -1,4 +1,4 @@
-/* 恒达智控 PPT-compatible HTML tokens
+/* 多品牌 PPT-compatible HTML tokens
    Canvas: 1600×900 | PPT: 13.333in×7.5in | 1px = 7620 EMU
    Typography: px = pt × 5/3 | pt = px × 0.6
 */
@@ -20,9 +20,10 @@
   --muted: #596b82;
   --line: rgba(0, 108, 178, 0.24);
 
-  --font-heading: "SimSun", "宋体", "Songti SC", "STSong", serif;
-  --font-body: "SimSun", "宋体", "Songti SC", "STSong", serif;
-  --font-ui: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+  /* 生成 deck 时必须按用户已确认、且目标操作系统已安装的字体替换这三项。 */
+  --font-heading: "Microsoft YaHei", "微软雅黑", sans-serif;
+  --font-body: "Microsoft YaHei", "微软雅黑", sans-serif;
+  --font-ui: "Microsoft YaHei", "微软雅黑", sans-serif;
 
   --t-130: 216.67px;
   --t-80: 133.33px;
@@ -296,19 +297,19 @@ li {
 .layout-cover {
   background-image:
     linear-gradient(90deg, rgba(0, 70, 143, 0.84), rgba(0, 70, 143, 0.24)),
-    url("./hengda/cover-campus.jpg");
+    url("./brand/cover-campus.jpg");
 }
 
 .layout-section {
   background-image:
     linear-gradient(90deg, rgba(0, 70, 143, 0.86), rgba(0, 70, 143, 0.22)),
-    url("./hengda/section-campus-night.png");
+    url("./brand/section-campus-night.png");
 }
 
 .layout-closing {
   background-image:
     linear-gradient(rgba(0, 70, 143, 0.36), rgba(0, 32, 80, 0.42)),
-    url("./hengda/closing-digital-globe.jpg");
+    url("./brand/closing-digital-globe.jpg");
 }
 
 .layout-cover h1 {

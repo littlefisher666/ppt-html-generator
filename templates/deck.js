@@ -1,6 +1,6 @@
 /* 唯一页面顺序与目录元数据源。生成 deck 时替换示例内容。 */
 window.PPT_HTML_DECK = {
-  title: "恒达智控演示文稿",
+  title: "演示文稿标题",
   slides: [
     {
       page: 1,
@@ -22,4 +22,3 @@ window.PPT_HTML_DECK = {
     }
   ]
 };
-

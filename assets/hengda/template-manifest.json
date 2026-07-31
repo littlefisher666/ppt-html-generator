@@ -1,5 +1,7 @@
 {
+  "brand": "恒达智控",
   "source": "恒达智控母版（仅用于一次性解析，原始 PPTX 不随 skill 分发）",
+  "sourceFile": "恒达智控母版.pptx",
   "sourceSha256": "1907fd1d99d4f527cd2b1490fe8de6fce10335027c86dfc445c04553e2a20a00",
   "canvas": {
     "pptEmu": [12192000, 6858000],
