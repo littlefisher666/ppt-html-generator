@@ -5,13 +5,15 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 const requestedFont = process.argv.slice(2).join(" ").trim();
+const requiredWesternFont = "Times New Roman";
 const aliases = new Map([
   ["微软雅黑", ["Microsoft YaHei", "微软雅黑"]],
   ["Microsoft YaHei", ["Microsoft YaHei", "微软雅黑"]],
-  ["宋体", ["SimSun", "宋体", "宋體", "Songti SC", "STSong"]],
-  ["SimSun", ["SimSun", "宋体", "宋體", "Songti SC", "STSong"]],
+  ["宋体", ["SimSun", "宋体", "宋體", "Songti SC", "STSong", "宋体-简", "华文宋体"]],
+  ["SimSun", ["SimSun", "宋体", "宋體", "Songti SC", "STSong", "宋体-简", "华文宋体"]],
   ["仿宋", ["FangSong", "仿宋", "仿宋_GB2312", "STFangsong"]],
   ["FangSong", ["FangSong", "仿宋", "仿宋_GB2312", "STFangsong"]],
+  ["Times New Roman", ["Times New Roman", "TimesNewRomanPSMT"]],
 ]);
 
 function normalize(value) {
@@ -42,20 +44,29 @@ async function listSystemFonts() {
 }
 
 if (!requestedFont) {
-  process.stderr.write("用法: node scripts/check-system-font.mjs <字体名称>\n");
+  process.stderr.write("用法: node scripts/check-system-font.mjs <中文字体名称>\n该命令会同时检查固定西文字体 Times New Roman。\n");
   process.exit(64);
 }
 
 try {
   const installedFonts = await listSystemFonts();
   const installedByNormalizedName = new Map(installedFonts.map((name) => [normalize(name), name]));
-  const candidates = aliases.get(requestedFont) || [requestedFont];
-  const matched = candidates.map((name) => installedByNormalizedName.get(normalize(name))).find(Boolean);
+  const requiredFonts = [...new Set([requestedFont, requiredWesternFont])];
+  const missingFonts = [];
 
-  if (matched) {
-    process.stdout.write(`字体可用：${requestedFont}（当前 ${process.platform} 系统匹配：${matched}）\n`);
-  } else {
-    process.stderr.write(`字体不可用：当前 ${process.platform} 系统未找到“${requestedFont}”。请安装该字体或重新选择。\n`);
+  for (const font of requiredFonts) {
+    const candidates = aliases.get(font) || [font];
+    const matched = candidates.map((name) => installedByNormalizedName.get(normalize(name))).find(Boolean);
+
+    if (matched) {
+      process.stdout.write(`字体可用：${font}（当前 ${process.platform} 系统匹配：${matched}）\n`);
+    } else {
+      missingFonts.push(font);
+    }
+  }
+
+  if (missingFonts.length > 0) {
+    process.stderr.write(`字体不可用：当前 ${process.platform} 系统未找到“${missingFonts.join("”、“")}”。请安装缺失字体后重试，或重新选择中文字体。\n`);
     process.exitCode = 1;
   }
 } catch (error) {

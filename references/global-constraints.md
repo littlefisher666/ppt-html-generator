@@ -19,8 +19,10 @@
 
 - 固定舞台为 `1600 × 900` px；PPT 页面 `13.333″ × 7.5″`；`1 HTML px = 7620 EMU`。
   字体换算为 `pt = px × 0.6`、`px = pt × 5/3`，不得使用浏览器默认 pt 换算。
-- 公司确认后必须确认字体并运行 `node scripts/check-system-font.mjs "<fontFamily>"`。未通过时停止；
-  目标系统字体状态未知时只能记录待确认。所选字体栈同时写入 `assets/ppt.css` 的三个 font token。
+- 公司确认后必须确认中文字体并运行 `node scripts/check-system-font.mjs "<fontFamily>"`；该命令会同时
+  检查固定西文字体 `Times New Roman`。任一字体未通过时停止；目标系统字体状态未知时只能记录待确认。
+  所选字体栈同时写入 `assets/ppt.css` 的三个 font token，且每个栈均以 `Times New Roman` 开头、
+  其后为已确认的中文字体及跨平台回退。
 - 只使用共享整数 pt token、`400/700` 字重和简单行高。内容页标题遵循母版 `32pt` 意图；正文只用
   `14/16/18/20pt` 内容角色。详细规则见 `references/typography.md`。
 - 内容页必须保留标题区、三段横线、右上彩色 Logo、正文安全区；封面/章节/封底必须使用对应母版

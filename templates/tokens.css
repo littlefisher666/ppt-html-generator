@@ -20,10 +20,10 @@
   --muted: #596b82;
   --line: rgba(0, 108, 178, 0.24);
 
-  /* 生成 deck 时必须按用户已确认、且目标操作系统已安装的字体替换这三项。 */
-  --font-heading: "Microsoft YaHei", "微软雅黑", sans-serif;
-  --font-body: "Microsoft YaHei", "微软雅黑", sans-serif;
-  --font-ui: "Microsoft YaHei", "微软雅黑", sans-serif;
+  /* 西文固定使用 Times New Roman；生成 deck 时仅替换其后的中文字体栈。 */
+  --font-heading: "Times New Roman", "Microsoft YaHei", "微软雅黑", sans-serif;
+  --font-body: "Times New Roman", "Microsoft YaHei", "微软雅黑", sans-serif;
+  --font-ui: "Times New Roman", "Microsoft YaHei", "微软雅黑", sans-serif;
 
   --t-130: 216.67px;
   --t-80: 133.33px;
@@ -444,6 +444,8 @@ li {
   top: 52.11px;
   width: 194.92px;
   height: 784px;
+  display: grid;
+  place-items: center;
   margin: 0;
   font-family: var(--font-ui);
   font-size: var(--t-80);
@@ -452,6 +454,15 @@ li {
   color: rgba(98, 157, 209, 0.2);
   writing-mode: vertical-rl;
   text-orientation: mixed;
+}
+
+/* 宋体下英文自然字宽偏窄；以容器的内联轴（竖向）均分字距，保持字面高度与母版一致。 */
+.agenda-word span {
+  display: block;
+  inline-size: 100%;
+  text-align: justify;
+  text-align-last: justify;
+  text-justify: inter-character;
 }
 
 .agenda-title {

@@ -82,18 +82,30 @@ Avoid values like `1.52` unless there is a strong brand reason; simple ratios co
 
 ## Font stacks
 
+### 本技能的固定中西文字体规则
+
+所有 deck 的西文固定使用 `Times New Roman`；中文使用用户已确认的中文字体。三个角色 token
+`--font-heading`、`--font-body`、`--font-ui` 必须使用完全相同的组合栈，并将 `Times New Roman`
+置于首位，再接中文主字体与跨平台中文回退。例如用户选择宋体时：
+
+```css
+--font: "Times New Roman", "SimSun", "宋体", "Songti SC", "STSong", "华文宋体", serif;
+```
+
+不得为标题、正文或 UI 单独改用其他西文字体。运行字体检查时，所选中文字体和 `Times New Roman`
+必须同时通过。
+
 Editable cross-platform example (serif award/tech deck):
 
 ```css
---font: "Songti SC", "SimSun", "STSong", "NSimSun",
+--font: "Times New Roman", "Songti SC", "SimSun", "STSong", "NSimSun",
         "Source Han Serif SC", "Noto Serif CJK SC", serif;
 ```
 
 Sans technical deck example:
 
 ```css
---font: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC",
-        "Helvetica Neue", Arial, sans-serif;
+--font: "Times New Roman", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
 ```
 
 Rules:
