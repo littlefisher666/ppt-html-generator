@@ -67,6 +67,8 @@ description: >
 
 - 公司母版映射：恒达智控 [hengda-template.md](references/hengda-template.md)、创信数智
   [chuangxin-template.md](references/chuangxin-template.md)、郑煤机 [zhengmeiji-template.md](references/zhengmeiji-template.md)。
+- 静态基础模板位于 `templates/`；新 deck 必须用 `scripts/init-deck-scaffold.mjs` 复制后复用，禁止每次重新生成
+  基础 CSS、导航、目录与页面 shell。仅页面数据、正文、媒体和确有必要的新页面类型可按任务生成。
 - 字体与坐标换算：[typography.md](references/typography.md)。
 - 最终 QA 细节：[qa-checklist.md](references/qa-checklist.md)。
 - 问题定位：[issue-catalog.md](references/issue-catalog.md)。

@@ -10,6 +10,11 @@ G5 已通过。必须读取 `exports/visual-strategy.md`、`exports/image-invent
 class/token，不写页内字号。语义独立不等于必须绘制视觉盒、边框或浅色底。内容留在母版安全区，底部预留
 导航 UI；内容页保留标题区、三段横线、Logo。
 
+先按 `visual-strategy.md` 从 `<deck>/templates/content/` 复制匹配的静态 shell：`statement`、`hero-media`、
+`data`、`comparison` 或 `process`；`structured` 继续使用已建立的 `slide-shell.html`。仅替换标题、正文、媒体
+引用和必要的安全区内容，复用 `assets/ppt.css` 与 `assets/slide.js`，不得为常见页面类型重写基础 DOM/CSS/导航。
+只有现有 shell 均无法承载的页面类型才能新增最小共享结构，并在页面检查记录说明原因。
+
 每完成一个内容页，立即在 1600×900 下执行单页检查并写入
 `exports/page-checks/<页码>-<文件名>.md`。未通过不得标记该页完成，不得等待所有页面写完再集中检查。
 单页检查通过后，必须按[检查点与恢复](checkpoint-recovery.md)创建该页 G6 检查点，保存页面 HTML、单页
