@@ -376,7 +376,8 @@ li {
   top: 635.34px;
   display: grid;
   gap: 8px;
-  width: 375px;
+  /* 与封面横线右端对齐，避免左下信息在可用空间内过早换行。 */
+  width: 1139.95px;
   min-height: 79.17px;
   margin: 0;
   padding-left: 14.26px;
