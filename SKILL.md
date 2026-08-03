@@ -19,11 +19,22 @@ description: >
 
 1. 本文件；
 2. [references/global-constraints.md](references/global-constraints.md)；
-3. 当前要执行的阶段文档；
-4. 已有 deck 的 `exports/stage-gates.md`，以及当前阶段的交接产物（如存在）。
+3. [任务清单管理](references/stages/task-management.md)；
+4. 当前要执行的阶段文档；
+5. 已有 deck 的 `tasks.md`、`exports/stage-gates.md`，以及当前阶段的交接产物（如存在）。
 
 不得因只读阶段文档而跳过全局硬约束。恢复会话时，以磁盘中的门禁记录和交接文件为准，不依赖
 聊天上下文或执行者记忆。
+
+## 可恢复任务清单
+
+`tasks.md` 的创建、动态拆分、勾选、返工与恢复规则，均在
+[任务清单管理](references/stages/task-management.md) 中执行。它贯穿 G1–G7，不替代阶段门禁，也不作为
+可跳过的独立门禁。
+
+| 环节 | 执行时机 | 必读文档 | 产物 |
+|---|---|---|---|
+| T0 任务清单管理 | G1 前创建；每阶段前、完成/失败/返工时更新 | [stages/task-management.md](references/stages/task-management.md) | `<deck>/tasks.md` |
 
 ## 阶段路由与门禁
 
