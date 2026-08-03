@@ -22,7 +22,8 @@ description: >
 3. [任务清单管理](references/stages/task-management.md)；
 4. [references/visual-direction.md](references/visual-direction.md)；
 5. 当前要执行的阶段文档；
-6. 已有 deck 的 `tasks.md`、`exports/stage-gates.md`，以及当前阶段的交接产物（如存在）。
+6. 若创建或恢复检查点，阅读[检查点与恢复](references/stages/checkpoint-recovery.md)；
+7. 已有 deck 的 `tasks.md`、`exports/stage-gates.md`，以及当前阶段的交接产物（如存在）。
 
 不得因只读阶段文档而跳过全局硬约束。恢复会话时，以磁盘中的门禁记录和交接文件为准，不依赖
 聊天上下文或执行者记忆。
@@ -54,6 +55,13 @@ description: >
 
 每个 deck 必须维护 `exports/stage-gates.md`，记录阶段编号、检查项、通过/失败、证据路径或命令输出，
 以及失败后的修复说明。记录缺失或缺项，视为未完成。
+
+## 检查点与文件级恢复
+
+门禁记录只证明曾经检查过，不能恢复被后续阶段覆盖的源码。每个 deck 必须依照
+[检查点与恢复](references/stages/checkpoint-recovery.md) 在 G5 通过后创建完整 deck 检查点，并在每页 G6
+通过后创建页面检查点。恢复时只能使用已哈希复核的检查点；必须归档恢复前状态、使后续受影响任务和门禁
+失效，并从指定阶段重新检查。不得用 Git 工作区状态或聊天记录代替检查点。
 
 ## 共享参考
 

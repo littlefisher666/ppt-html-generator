@@ -15,3 +15,7 @@ G4 已通过。必须读取 `exports/visual-strategy.md` 和 `exports/image-inve
 ## G5 检查与记录
 
 逐页检查媒体框位置、宽高、`aspect-ratio`、图注区、预期占比和剩余正文区；媒体框比例必须与清单源图一致，主视觉的实际占比不得无理由低于规划。将结果写入 `exports/media-frame-review.md`。G5 通过前，内容页不得填入实际正文、表格、数据卡或说明文字。
+
+G5 检查全部通过后、开始 G6 前，必须按[检查点与恢复](checkpoint-recovery.md)创建完整 G5 deck
+检查点，包含页面、共享实现、已引用媒体和 G3/G4/G5 交接证据，并复核 `checkpoint.json` 的文件哈希。检查点
+有效后才可记录 G5 通过并进入 G6。
