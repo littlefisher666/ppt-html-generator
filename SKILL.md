@@ -20,8 +20,9 @@ description: >
 1. 本文件；
 2. [references/global-constraints.md](references/global-constraints.md)；
 3. [任务清单管理](references/stages/task-management.md)；
-4. 当前要执行的阶段文档；
-5. 已有 deck 的 `tasks.md`、`exports/stage-gates.md`，以及当前阶段的交接产物（如存在）。
+4. [references/visual-direction.md](references/visual-direction.md)；
+5. 当前要执行的阶段文档；
+6. 已有 deck 的 `tasks.md`、`exports/stage-gates.md`，以及当前阶段的交接产物（如存在）。
 
 不得因只读阶段文档而跳过全局硬约束。恢复会话时，以磁盘中的门禁记录和交接文件为准，不依赖
 聊天上下文或执行者记忆。
@@ -45,7 +46,7 @@ description: >
 |---|---|---|---|
 | G1 | 基础条件 | [stages/foundation.md](references/stages/foundation.md) | `exports/stage-gates.md` |
 | G2 | 母版与资源 | [stages/brand-assets.md](references/stages/brand-assets.md) | 资源校验输出 |
-| G3 | 全 deck 骨架、目录与导航 | [stages/deck-skeleton.md](references/stages/deck-skeleton.md) | `exports/deck-skeleton-review.md` |
+| G3 | 全 deck 骨架、目录与导航 | [stages/deck-skeleton.md](references/stages/deck-skeleton.md) | `exports/deck-skeleton-review.md`、`exports/visual-strategy.md` |
 | G4 | 内容页计划与图片清单 | [stages/content-inventory.md](references/stages/content-inventory.md) | `exports/image-inventory.md` |
 | G5 | 媒体框预留 | [stages/media-frame-layout.md](references/stages/media-frame-layout.md) | `exports/media-frame-review.md` |
 | G6 | 内容页实现与逐页检查 | [stages/content-page-check.md](references/stages/content-page-check.md) | `exports/page-checks/` |

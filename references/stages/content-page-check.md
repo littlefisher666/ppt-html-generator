@@ -2,12 +2,13 @@
 
 ## 进入条件
 
-G5 已通过。必须读取 `exports/image-inventory.md` 和 `exports/media-frame-review.md`。
+G5 已通过。必须读取 `exports/visual-strategy.md`、`exports/image-inventory.md` 和 `exports/media-frame-review.md`。
 
 ## 执行
 
-仅在此阶段填入内容页正文、表格、数据卡和说明文字。标题、正文、表格、图像必须是独立语义盒；复用共享
-class/token，不写页内字号。内容留在母版安全区，底部预留导航 UI；内容页保留标题区、三段横线、Logo。
+仅在此阶段填入内容页正文、表格、数据卡和说明文字。标题、正文、表格、图像必须语义独立；复用共享
+class/token，不写页内字号。语义独立不等于必须绘制视觉盒、边框或浅色底。内容留在母版安全区，底部预留
+导航 UI；内容页保留标题区、三段横线、Logo。
 
 每完成一个内容页，立即在 1600×900 下执行单页检查并写入
 `exports/page-checks/<页码>-<文件名>.md`。未通过不得标记该页完成，不得等待所有页面写完再集中检查。
@@ -24,9 +25,12 @@ class/token，不写页内字号。内容留在母版安全区，底部预留导
 4. 图片量测：对照清单读取 `naturalWidth × naturalHeight` 和 `getBoundingClientRect()` 渲染尺寸，计算
    `scaleX`、`scaleY`。`|scaleX - scaleY| / max(scaleX, scaleY) ≤ 1%`；渲染图片与媒体框的比例相对源图偏差
    均 ≤ 1%。确认 `object-fit: contain` 或等价实现，未使用 `fill`、`cover`、裁切祖先或负边距隐藏画面。
+5. 视觉意图检查：核对页面类型、唯一记忆点、主视觉权重、副标题和总结条使用是否符合
+   `visual-strategy.md`。确认没有把每条信息都放入卡片/标签/浅色框，没有无意义的对称排比，且非
+   `structured` 页面未退化为等分卡片矩阵。允许有意留白，不得因留白而补入无关文字或容器。
 
 截图视觉结论优先于 DOM 与静态扫描。每页记录逐图源图尺寸、渲染尺寸、媒体框尺寸、缩放比、比例偏差、
-`object-fit`、截图结论、三层检查结果、问题与复测结论；不得只写“图片正常”。
+`object-fit`、截图结论、三层检查、视觉意图检查、问题与复测结论；不得只写“图片正常”。
 
 ## 并行协作与 G6 门禁
 
