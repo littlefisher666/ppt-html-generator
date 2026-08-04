@@ -1,4 +1,4 @@
 interface:
-  display_name: "多品牌 HTML 幻灯片"
-  short_description: "按公司母版与目标系统字体生成可转 PPT 的 HTML 幻灯片并自动验收"
-  default_prompt: "使用 $ppt-html-generator 生成带目录、底部导航和键盘翻页的 HTML 幻灯片；先确认使用恒达智控、创信数智还是郑煤机母版，再选择目标系统已安装的微软雅黑、宋体、仿宋或其他字体，最后完成 QA。"
+  display_name: "PPT HTML 生成与转换"
+  short_description: "生成并验收可转 PPT 的 HTML 幻灯片，或将已验收 HTML 分阶段转换为 PPTX"
+  default_prompt: "使用 $ppt-html-generator：若需要新建或修改，请生成并验收可转 PPT 的 1600×900 HTML 幻灯片；若已有通过验收的 HTML deck，请按 HTML 转 PPTX 工作流执行分阶段转换、渲染和视觉校验。涉及品牌母版时，先确认使用恒达智控、创信数智还是郑煤机。"
