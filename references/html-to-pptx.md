@@ -6,9 +6,9 @@
 ## 当前状态
 
 转换器尚未实现。本文件定义后续实现的范围、输入契约和验收门槛，避免在实现前把“可转 PPT”误表述为
-"已经可以生成 PPTX"。PPTX 生成命令、HTML 截图脚本、坐标提取和页面元素复原逻辑在实现落地后补充；任一
-必需脚本或命令尚未落地并实际验证时，对应 P1/P2 不得标记为通过。HTML 截图、PPTX 渲染与视觉比对使用的
-运行时工具和交接产物以各阶段文档为准。
+"已经可以生成 PPTX"。技能已内置 P1/P2 的工作区初始化、HTML 截图、坐标提取与框线图脚本；PPTX 生成、
+渲染及最终视觉比对逻辑仍待实现。任一必需脚本或命令尚未落地并实际验证时，对应门禁不得标记为通过。HTML
+截图、PPTX 渲染与视觉比对使用的运行时工具和交接产物以各阶段文档为准。
 
 ## L2 视觉预览校验与执行环境
 
@@ -19,6 +19,10 @@
 在其他 AI IDE 中，必须依照[非 Codex 渲染后端](pptx-renderer-backends.md)安装 LibreOffice，并使用其无界面导出
 PDF、再栅格化为逐页 PNG 的自动化链路。不要依据用户日常使用的 WPS 或 Microsoft PowerPoint 选择渲染方案；
 二者不得承担 L2 自动渲染验收。安装或冒烟验证失败时，P1 不通过，不得因渲染不便跳过 L2 或改用人工导出。
+
+若选择 Codex Presentations runtime，P6 的渲染命令由 `python3` 执行 `render_slides.py`；因此完整交付前必须
+验证 `python3` 可执行，并通过 Presentations runtime 的初始化流程确认该脚本所需 Python 包与渲染工具可用。
+这不是把 Python 作为所有 HTML 工作的前置条件：P1/P2 的内置预处理脚本只需要 Node.js 与本地 Playwright。
 
 ## 每次必读
 
@@ -101,3 +105,20 @@ PDF、再栅格化为逐页 PNG 的自动化链路。不要依据用户日常使
 输出，以及失败后的修复说明。记录缺失或缺项，视为阶段未完成。
 
 在上述命令和验收实现前，本技能只能生成“可作为转换输入的 HTML”，不能承诺输出 `.pptx`。
+
+## 已内置的通用预处理命令
+
+以下命令位于本技能的 `scripts/`，应直接调用，禁止在任务目录临时重写同类脚本。三个命令均只读取输入
+deck，并只在 `<deck>/exports/pptx/` 写入独立转换产物，不改动 HTML 源码。
+
+```bash
+node <skill>/scripts/init-pptx-workspace.mjs <deck-root>
+node <skill>/scripts/capture-html-slides.mjs <deck-root>
+node <skill>/scripts/extract-html-coordinate-map.mjs <deck-root>
+```
+
+截图与坐标脚本固定从 `<deck-root>/node_modules/playwright` 加载项目本地 Playwright，并使用其 Chromium；缺失
+时先按 P1 安装并验证，不能回退到全局浏览器。截图脚本固定以本地 HTTP 服务、`deck.js` 页序、1600×900、
+`deviceScaleFactor: 1`、`prefers-reduced-motion: reduce` 运行，并生成 `page-map.json`。坐标脚本从同一渲染
+条件提取可见 DOM 元素及计算样式，生成 `coordinate-map.json` 与逐页 SVG 框线图。它们是通用基线工具，不负责
+决定哪些复杂元素应转为可编辑 PPT 元素或降级为图片。

@@ -21,7 +21,7 @@ P5 已通过，全部内容页检查记录和 subagent 交接齐全。
    最终位置、尺寸、层级和样式微调；不得依赖截图掩盖缺失、错位或不可编辑元素。
 3. 使用 P1 记录的渲染后端将最终 PPTX 渲染至 `exports/pptx/pptx-renders/`。在 Codex 中，若选择
    `artifact-tool`，使用 Presentations skill 的 `container_tools/render_slides.py` 并指定
-   `--width 1600 --height 900`；非 Codex 中，使用 LibreOffice 无界面导出 PDF 后再栅格化为 PNG。渲染页数、
+   `--width 1600 --height 900`，并以 `python3` 运行；非 Codex 中，使用 LibreOffice 无界面导出 PDF 后再栅格化为 PNG。渲染页数、
    顺序和 PNG 尺寸必须与 HTML 截图一致。
 4. 按 `page-map.json` 将 PPTX 渲染图与 HTML 截图生成叠加图和差异图，保存至
    `exports/pptx/comparison/`。大模型必须查看原始成对图片、叠加图和差异图，审查布局、文字、图片、背景、Logo、

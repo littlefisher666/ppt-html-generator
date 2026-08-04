@@ -15,7 +15,7 @@ P1 已通过。
 
 ### 截图方式（固定）
 
-必须使用 **Playwright Chromium** 的无头浏览器截图，由后续实现的
+必须使用 **Playwright Chromium** 的无头浏览器截图，由技能内置的
 `scripts/capture-html-slides.mjs` 统一执行；不得使用人工截图、浏览器开发者工具截图、系统截屏或其他浏览器。
 脚本必须在 deck 根目录启动本地静态 HTTP 服务器，再按 `assets/deck.js` 的唯一页序逐页访问，不能按文件系统
 遍历或直接打开 `file://` 路径。
@@ -33,6 +33,16 @@ P1 已通过。
 转换器实现时必须将 Playwright 及其 Chromium 版本、实际执行命令、服务器地址和截图失败项写入
 `exports/pptx/baseline-review.md`。P1 的 `runtime-dependency-review.md` 未通过，或截图脚本未落地并验证时，
 P2 不得标记为通过。
+
+P1 通过后执行（`<skill>` 为本技能目录）：
+
+```bash
+node <skill>/scripts/capture-html-slides.mjs <deck-root>
+node <skill>/scripts/extract-html-coordinate-map.mjs <deck-root>
+```
+
+前者同时根据 `assets/deck.js` 写入 `page-map.json`；后者写入 `coordinate-map.json` 和 SVG 框线图。任何一个
+命令失败都必须修复输入或运行时，不得用临时脚本或手工产物替代。
 
 ### 建立基准与定位模型
 

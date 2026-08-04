@@ -27,6 +27,8 @@
 7. 选择一个 PPTX 渲染后端，并确认它能以稳定页序输出逐页 PNG，供大模型与 HTML 截图比较。仅在 Codex
    Presentations runtime 可完成 setup 且最小 PPTX 实际渲染成功时，才可选择内置 `artifact-tool`；运行 setup
    脚本初始化临时工作区。它链接的是 Codex 内置运行时，不得以 `npm install @oai/artifact-tool` 替代。
+   选择该路径时，还必须验证 `python3` 可执行；`render_slides.py` 由 Python 运行，并使用 Presentations runtime
+   已配置的包和工具。不得在本技能或 deck 目录临时复制脚本、安装替代 Python 包来绕过 runtime 初始化。
 8. 未检测到 Codex runtime，或 Codex runtime 的 setup / 最小渲染验证失败时，严格按
    `pptx-renderer-backends.md` 检测并安装 LibreOffice；不得询问或依据用户使用 WPS 还是 Microsoft PowerPoint，
    也不得使用其自动化接口替代。生成 LibreOffice 导出 PDF 与 PDF 栅格化为 PNG 的可重复命令方案，并写入
@@ -36,6 +38,14 @@
    P1 失败，不得继续 P2，也不得以人工导出绕过。
 10. 在 `exports/pptx/tasks.md` 创建本次转换任务清单，覆盖 P1–P6、逐页内容复原、返工和最终验收。
 11. 创建 `exports/pptx/pptx-stage-gates.md`，记录 P1 检查结果。
+
+为避免每次临时创建目录和初始记录，先运行：
+
+```bash
+node <skill>/scripts/init-pptx-workspace.mjs <deck-root>
+```
+
+该命令不覆盖已有记录；仍须由执行者补全实际检查结果，不能因文件已存在而标记 P1 通过。
 
 ## P1 检查与交接
 
