@@ -1,0 +1,23 @@
+{
+  "templateId": "layout-agenda-v5",
+  "brand": "恒达智控",
+  "source": "恒达智控目录母版；Logo 已从固定底图中排除，运行时仅接受恒达智控彩色 Logo",
+  "brandLogoSha256": "0fdf860a214d3f029e4df0631ad7ec32f3d12df748a06ac6b89c194dbf81379b",
+  "files": {
+    "agenda-fixed-base-no-logo.png": "59932e1b54b0373fb435520f6541d5f538716d658ca2d609a8276402de424bf2",
+    "agenda-item-bar-48.png": "2d15c11bc5a0c80120c9e665109b60f1a8d7089f030dc6ad976c302701978443",
+    "agenda-item-bar-52p6.png": "0b4750be285fa566b105466814ab45748dfed72a3aa9e547559b46fcc2c65297",
+    "agenda-item-bar-57p2.png": "d24e47a2d0064faa71077449f7dab516c94cb135a65ae0365b3eeef1281e92a5",
+    "agenda-item-bar-61p8.png": "2259fa140782ddb8c70e7d5d53f50fa95f789831312f5d6f6ebdd8aeb4d4f51b",
+    "agenda-item-bar-66p39.png": "e0b8eabe2abdc2b88a5d3f85e920139c404bd87046c812ec9b8ccbe50ebb1dd7",
+    "agenda-item-bar-70p99.png": "a93f3200dae1861ee3ba821c9fbe5da8c2219411262638712345a2e6a668d2fb",
+    "agenda-item-bar-75p59.png": "f99363f4aa3e068dbc8a1d2a10add6fb6e77d97daa56f714e7f1639e749f548c",
+    "agenda-item-number-48.png": "6c65a1b04fc10cd697ab87ec0abb6e6a9c594f8ebb6cae027d912d9be77f4e68",
+    "agenda-item-number-52p6.png": "6cd079fb33b69d8f7827830b992c0750a2b68fd21bd5a4dbbb42e55378d48cbc",
+    "agenda-item-number-57p2.png": "3ce9b100ab04c62d8db0093180074402cc2f1f88cc57d8a8b1a0e22d11eb2e8a",
+    "agenda-item-number-61p8.png": "b2c2fb7a56c2d348350e67efcc12e8d593a3d6e939e077fbe2318e7ddceeea41",
+    "agenda-item-number-66p39.png": "1d35b7b6fe421eef9a6bf928f975135e61b4fe69ccc020d7097cac7b6b456afb",
+    "agenda-item-number-70p99.png": "e6b473132784346cbc8167887a46ee732bc5a7b387392c123904a480d4af9fa2",
+    "agenda-item-number-75p59.png": "ef7cb091780cc006f6fe1ae9d0412eeaf14cf825e5e153d9a39aced75b329bc4"
+  }
+}

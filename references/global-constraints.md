@@ -7,8 +7,8 @@
 - 只能使用所选公司的映射与素材：恒达智控对应 `references/hengda-template.md` 与 `assets/hengda/`；
   创信数智对应 `references/chuangxin-template.md` 与 `assets/chuangxin/`；郑煤机对应
   `references/zhengmeiji-template.md` 与 `assets/zhengmeiji/`。必须先阅读映射再生成页面。
-- 内置素材仅可从所选公司目录或经 manifest 哈希确认、逐字节相同的 `assets/shared/` 解析；不得混用
-  公司专属 Logo、只参考配色或另造相似模板。
+- 内置素材仅可从所选公司目录，或从 manifest 记录了同一公司母版来源、文件 SHA-256 且已在运行时复核的
+  `assets/shared/` 解析；不得混用公司专属 Logo、只参考配色或另造相似模板。
 - 封面、过渡页（章节页）和封底背景图不可替换：必须分别使用 `assets/brand/cover-campus.jpg`、
   `assets/brand/section-campus-night.png`、`assets/brand/closing-digital-globe.jpg`。不得用用户图、
   项目图、网络图、渐变、CSS 覆盖层替换、遮蔽或重定义，也不得修改三个 layout 的背景图片引用。
@@ -35,6 +35,16 @@
 - 目录只显示页码、主标题、副标题；桌面 5 列，中等/小屏 2/1 列。每页底部必须有首页、上一页、
   当前页、下一页；四方向键翻页。导航在截图中保留，在打印/PPT 导出时隐藏。
 - 不得维护平行 manifest、平行导航器或页内复制的导航逻辑。
+
+
+## 图片清晰度（交付 vs 检查）
+
+- **贴入 PPT 的图片**（版式固定底图、降级嵌入的复杂组件、品牌/内容素材等）必须使用**高清**像素：
+  以 1600×900 逻辑画布计，默认不少于 `deviceScaleFactor = 2`（全页等价于 3200×1800）；不得把检查用
+  1× 截图直接当作交付贴图。
+- **仅用于检查/比对的截图**（HTML 基准图、框线辅助、差异审阅等）清晰度可较低：默认 `deviceScaleFactor = 1`
+  （1600×900）即可，只要文字与布局可辨认，不要求交付级锐度。
+- 高清交付图与检查截图必须分目录或分文件保存，禁止混用同一低清截图既做检查又贴进 PPTX。
 
 ## 失败处理与交付
 

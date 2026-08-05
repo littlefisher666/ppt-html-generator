@@ -23,6 +23,9 @@ P1 已通过。
 每页渲染必须满足以下固定参数：
 
 - Chromium 视口 `1600 × 900`，`deviceScaleFactor: 1`，输出 PNG 必须恰为 `1600 × 900` px；
+  这是**检查用截图**，清晰度以可辨认为准，不得当作贴入 PPT 的交付图；
+- 截图模式会固定 `.viewport > .frame > .stage > .slide` 至左上对齐的 `1600 × 900`，覆盖预览脚本的缩放和留白；截图中不得出现右侧或下侧空白；
+- 截图前会移除 `[data-ppt-ui]`（包括 `.slide-nav`）标记的交互 UI；翻页按钮等预览控件不得进入基准图；
 - 使用 `prefers-reduced-motion: reduce`，并在页面加载后冻结 CSS 动画和 transition，确保截图可复现；
 - 等待页面 `load`、`document.fonts.ready` 和连续两帧 `requestAnimationFrame` 后截图；任一资源、字体或页面脚本
   加载失败即失败，不得以未完成渲染的截图继续；
@@ -50,7 +53,7 @@ node <skill>/scripts/extract-html-coordinate-map.mjs <deck-root>
    生成时间。
 2. 创建同页数、同页面尺寸的 PPTX，将每页截图作为临时视觉基准层铺入对应页面；校验页序、尺寸和位置。整页
    截图仅用于复原和比对，不得作为最终成品内容。
-3. 从实际 DOM 与计算样式提取模板元素、文字、媒体和其他可见元素的边界、层级和类型，写入
+3. 从实际 DOM 与计算样式提取模板元素、文字、媒体和其他可见元素的边界、层级、类型和 class 列表，写入
    `exports/pptx/coordinate-map.json`；每个元素至少记录稳定标识、页码、类型、可见性、可编辑性、来源、
    `x/y/width/height`、层级、变换/裁切/透明度及降级方式（如有）。生成逐页框线图至
    `exports/pptx/guide-frames/` 并作为临时 PPTX 辅助层。

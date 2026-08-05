@@ -19,7 +19,8 @@ HTML 生成流程和 PPTX 转换流程混用。
 
 ## 运行时依赖
 
-- 仅生成或检查 HTML：Node.js；涉及截图和坐标提取时，另需 deck 根目录本地安装的 Playwright 与 Chromium。
+- 仅生成或检查 HTML：Node.js；涉及截图和坐标提取时，另需 Playwright 与其专用 Chromium。解析顺序为 deck
+  本地 `node_modules/playwright`，其次全局 npm 安装的 `playwright`；不使用系统 Google Chrome / Edge。
 - 完整 HTML 转 PPTX 的 Codex 验收路径：除上述依赖外，需要可执行的 `python3`，用于运行 Presentations runtime
   提供的 `container_tools/render_slides.py`。该脚本依赖 Presentations runtime 已配置的 Python 包和渲染工具，
   不应在本技能目录内临时 `pip install` 或复制脚本。
@@ -34,6 +35,11 @@ HTML 生成流程和 PPTX 转换流程混用。
 - 最终 QA：[qa-checklist.md](references/qa-checklist.md)
 - 问题定位：[issue-catalog.md](references/issue-catalog.md)
 
-当前已内置转换前的工作区初始化、HTML 基准截图、DOM 坐标提取与框线图工具。它们用于稳定产出 P1/P2 的
-输入与证据，尚不包含将 DOM 写成可编辑 PPTX、PPTX 自动渲染或最终视觉比对的转换器；不得声称已具备完整
+当前已内置转换前的工作区初始化、HTML 基准截图、DOM 坐标提取与框线图工具，以及**目录页模板转换**
+（`scripts/build-agenda-template.mjs`）：可从 HTML deck 生成统一目录模板；恒达目录页的无 Logo 固定背景、条目长条背景与编号方块
+为技能内置高清资产，其中长条与方块独立放置，仅编号/标题可编辑，避免后续调整条目宽高时方块变形。右上角 Logo 从目标 deck 的品牌资源独立放置，目录转换不再为这些固定元素重复截图。
+封面/内容页通用复原、PPTX 自动渲染与最终视觉比对主链路仍待实现；不得把“目录页可导出”表述为完整 deck
 HTML 转 PPTX 交付能力。
+
+图片清晰度：贴入 PPT 的位图必须高清（默认 ≥2×）；仅用于检查/比对的截图可用 1×，能辨认即可。详见
+[global-constraints.md](references/global-constraints.md) 与 [html-to-pptx.md](references/html-to-pptx.md)。

@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 export const STAGE_WIDTH = 1600;
 export const STAGE_HEIGHT = 900;
@@ -57,12 +58,118 @@ export async function startDeckServer(deckRoot) {
 }
 
 export async function loadLocalPlaywright(deckRoot) {
+  const resolved = await resolvePlaywright(deckRoot);
+  return resolved.module;
+}
+
+async function pathExists(targetPath) {
   try {
-    const modulePath = path.join(deckRoot, "node_modules", "playwright", "index.js");
-    return await import(modulePath);
+    await stat(targetPath);
+    return true;
   } catch {
-    throw new Error("未找到 deck 根目录的 playwright。本工具只使用项目本地依赖；请在 deck 根目录执行 npm install --save-dev playwright，并执行 npx playwright install chromium。");
+    return false;
   }
+}
+
+
+async function importPlaywrightModule(modulePath) {
+  const href = modulePath.startsWith("file:") ? modulePath : pathToFileURL(modulePath).href;
+  const module = await import(href);
+  const resolved = module?.chromium?.launch ? module : module?.default?.chromium?.launch ? module.default : null;
+  if (!resolved?.chromium?.launch) {
+    throw new Error(`已找到 playwright 模块，但接口不可用：${modulePath}`);
+  }
+  return resolved;
+}
+
+async function resolveGlobalPlaywrightModulePath() {
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const execFileAsync = promisify(execFile);
+  try {
+    const { stdout } = await execFileAsync("npm", ["root", "-g"], {
+      encoding: "utf8",
+      timeout: 15000,
+    });
+    const globalRoot = String(stdout || "").trim();
+    if (!globalRoot) return null;
+    const modulePath = path.join(globalRoot, "playwright", "index.js");
+    if (await pathExists(modulePath)) return modulePath;
+  } catch {
+    // ignore and fall through
+  }
+  return null;
+}
+
+/**
+ * 按固定优先级解析 Playwright：
+ * 1. deck 本地：<deck-root>/node_modules/playwright
+ * 2. 全局 npm：`npm root -g`/playwright
+ * 找到包后，只接受该包的 chromium.executablePath() 指向的浏览器。不得扫描缓存选择其他 revision，
+ * 也不得接受 PLAYWRIGHT_EXECUTABLE_PATH 或系统 Chrome / Edge；否则基准截图不可复现。
+ */
+export async function resolvePlaywright(deckRoot) {
+  const root = path.resolve(deckRoot);
+  const candidates = [
+    {
+      source: "deck-local",
+      modulePath: path.join(root, "node_modules", "playwright", "index.js"),
+      installHint: `在 deck 根目录执行 npm install --save-dev playwright && npx playwright install chromium`,
+    },
+  ];
+
+  const globalModulePath = await resolveGlobalPlaywrightModulePath();
+  if (globalModulePath) {
+    candidates.push({
+      source: "global",
+      modulePath: globalModulePath,
+      installHint: `使用全局 Playwright 安装浏览器：npx --yes playwright install chromium`,
+    });
+  }
+
+  const inspected = [];
+  for (const candidate of candidates) {
+    if (!(await pathExists(candidate.modulePath))) {
+      inspected.push(`${candidate.source}: 包不存在 (${candidate.modulePath})`);
+      continue;
+    }
+    try {
+      const module = await importPlaywrightModule(candidate.modulePath);
+      const executablePath = module.chromium.executablePath();
+      const browserReady = await pathExists(executablePath);
+      if (!browserReady) {
+        inspected.push(`${candidate.source}: 包可用，但 Chromium 未安装 (${module.chromium.executablePath()})`);
+        continue;
+      }
+      return {
+        source: candidate.source,
+        modulePath: candidate.modulePath,
+        executablePath,
+        executableSource: "package-default",
+        browserReady: true,
+        module,
+      };
+    } catch (error) {
+      inspected.push(`${candidate.source}: 加载失败 (${error instanceof Error ? error.message : String(error)})`);
+    }
+  }
+
+  const hasLocalPackage = await pathExists(path.join(root, "node_modules", "playwright", "index.js"));
+  const hasGlobalPackage = Boolean(globalModulePath);
+  const lines = [
+    "未找到可启动的 Playwright Chromium。",
+    "检查顺序：1) deck 本地 node_modules/playwright；2) 全局 npm 安装的 playwright。",
+    ...inspected.map((item) => `- ${item}`),
+  ];
+  if (!hasLocalPackage && !hasGlobalPackage) {
+    lines.push("两处均未安装 playwright 包。优先在 deck 根目录执行：npm install --save-dev playwright && npx playwright install chromium");
+    lines.push("或全局安装：npm install -g playwright && npx playwright install chromium");
+  } else {
+    lines.push("已找到 playwright 包，但对应 Chromium 未就绪。请只补装浏览器，不要重复安装包：");
+    if (hasLocalPackage) lines.push(`- deck 本地：cd ${root} && npx playwright install chromium`);
+    if (hasGlobalPackage) lines.push("- 全局：npx --yes playwright install chromium");
+  }
+  throw new Error(lines.join("\n"));
 }
 
 export async function prepareSlidePage(page, url) {
@@ -70,8 +177,17 @@ export async function prepareSlidePage(page, url) {
   await page.goto(url, { waitUntil: "load" });
   await page.evaluate(async () => {
     const style = document.createElement("style");
-    style.textContent = `html,body,.viewport{width:1600px!important;height:900px!important;overflow:hidden!important}.frame{left:0!important;top:0!important;transform:none!important}.stage{transform:none!important}.slide-nav{display:none!important}*,*::before,*::after{animation:none!important;transition:none!important}`;
+    style.setAttribute("data-ppt-capture-style", "true");
+    style.textContent = `
+      html,body{margin:0!important;width:1600px!important;min-width:1600px!important;max-width:1600px!important;height:900px!important;min-height:900px!important;max-height:900px!important;overflow:hidden!important}
+      .viewport{position:fixed!important;inset:0!important;width:1600px!important;height:900px!important;overflow:hidden!important}
+      .frame{position:absolute!important;left:0!important;top:0!important;width:1600px!important;height:900px!important;transform:none!important}
+      .stage,.slide{width:1600px!important;height:900px!important;transform:none!important}
+      [data-ppt-ui],.slide-nav{display:none!important}
+      *,*::before,*::after{animation:none!important;transition:none!important}
+    `;
     document.head.append(style);
+    document.querySelectorAll("[data-ppt-ui], .slide-nav").forEach((element) => element.remove());
     await document.fonts.ready;
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });

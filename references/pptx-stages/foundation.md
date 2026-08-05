@@ -18,12 +18,19 @@
 2. 确认页面为 `1600 × 900` px、目标 PPTX 为 `13.333″ × 7.5″`，并记录坐标与字体换算规则。
 3. 确认所有引用资源可读取、使用相对路径，且目标字体在 PPTX 生成和渲染环境均可用，或已有明确且已接受的
    替代方案。
-4. 在转换器项目根目录检测本地 `playwright` npm 包和 Chromium 浏览器。必须使用项目本地依赖，禁止依赖全局
-   安装或机器上偶然存在的浏览器。
-5. 若 npm 包缺失，直接在转换器项目根目录执行 `npm install --save-dev playwright`；若 Chromium 缺失，执行
-   `npx playwright install chromium`。安装失败即 P1 失败，不得跳过 P2 所需的截图能力。
-6. 安装或检测完成后，实际启动一次 `playwright.chromium`，验证可创建无头浏览器、`1600 × 900` 页面和
-   `deviceScaleFactor: 1` 的浏览器上下文；仅包可解析但浏览器不能启动，视为失败。
+4. 按固定顺序检测 Playwright 与其专用 Chromium，禁止直接用系统 Google Chrome / Edge 替代：
+   1. deck 本地：`<deck-root>/node_modules/playwright`；
+   2. 全局 npm：`npm root -g` 下的 `playwright`。
+   任一位置找到可用包后，还必须确认该版本对应的 Chromium 可执行文件已存在并可启动。内置脚本
+   `resolvePlaywright()` 已实现上述顺序；执行者应复用检测结果，不得跳过全局检查就要求重装。
+5. 仅当两处都没有可用 `playwright` 包时，才安装包：优先在 deck 根目录执行
+   `npm install --save-dev playwright`；用户明确要求全局复用时，可改用 `npm install -g playwright`。
+   若包已存在但 Chromium 缺失，只执行对应来源的 `npx playwright install chromium` 或
+   `npx --yes playwright install chromium`，禁止重复安装 npm 包，也禁止在已有匹配 revision 缓存时强制重下。
+   安装失败即 P1 失败，不得跳过 P2 所需的截图能力。
+6. 安装或检测完成后，实际启动一次已解析到的 `playwright.chromium`，验证可创建无头浏览器、`1600 × 900`
+   页面和 `deviceScaleFactor: 1` 的浏览器上下文；仅包可解析但浏览器不能启动，视为失败。记录实际来源
+   （`deck-local` 或 `global`）、模块路径与 Chromium 可执行路径。
 7. 选择一个 PPTX 渲染后端，并确认它能以稳定页序输出逐页 PNG，供大模型与 HTML 截图比较。仅在 Codex
    Presentations runtime 可完成 setup 且最小 PPTX 实际渲染成功时，才可选择内置 `artifact-tool`；运行 setup
    脚本初始化临时工作区。它链接的是 Codex 内置运行时，不得以 `npm install @oai/artifact-tool` 替代。
@@ -51,8 +58,9 @@ node <skill>/scripts/init-pptx-workspace.mjs <deck-root>
 
 写入 `exports/pptx/input-review.md`，至少记录输入路径、页数与页序、HTML 门禁证据、页面尺寸、资源/字体状态、
 转换输出目录和阻塞项。另写入 `exports/pptx/runtime-dependency-review.md`，记录 Playwright/npm 包版本、Chromium
-版本、检测或安装命令、无头浏览器启动验证结果，以及所选 PPTX 渲染后端、版本、初始化/导出操作、最小渲染
-验证结果和失败项。若选用 `artifact-tool`，额外记录其运行时路径、版本、setup 命令和工作区导入结果；若选用
+版本、解析来源（`deck-local` / `global`）、模块路径、Chromium 可执行路径、两处检查结果、检测或安装命令、无头
+浏览器启动验证结果，以及所选 PPTX 渲染后端、版本、初始化/导出操作、最小渲染验证结果和失败项。若选用
+`artifact-tool`，额外记录其运行时路径、版本、setup 命令和工作区导入结果；若选用
 LibreOffice，额外记录 PDF 栅格化工具、字体/替代字体、PDF 页尺寸及其验证结果。
 另写入 `exports/pptx/render-backend-plan.md`：若选用 `artifact-tool`，记录运行时版本、setup 与渲染命令；若
 选用 LibreOffice，记录 LibreOffice 与 PDF 栅格化工具的版本及安装来源、自动化方式、实际命令、输出命名和每轮
