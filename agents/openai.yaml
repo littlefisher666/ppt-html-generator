@@ -1,4 +1,4 @@
 interface:
-  display_name: "PPT HTML 生成与转换"
-  short_description: "生成并验收可转 PPT 的 HTML 幻灯片，或将已验收 HTML 分阶段转换为 PPTX"
-  default_prompt: "使用 $ppt-html-generator：若需要新建或修改，请生成并验收可转 PPT 的 1600×900 HTML 幻灯片；若已有通过验收的 HTML deck，请按 HTML 转 PPTX 工作流执行分阶段转换、渲染和视觉校验。涉及品牌母版时，先确认使用恒达智控、创信数智还是郑煤机。"
+  display_name: "公司专属 PPT 生成与转换"
+  short_description: "仅用于恒达智控 / 创信数智 / 郑煤机等公司专属品牌母版 PPT 的 HTML 生成与 PPTX 转换"
+  default_prompt: "使用 $ppt-html-generator 处理公司专属品牌 PPT：先确认母版为恒达智控、创信数智或郑煤机；若需新建或修改，按品牌母版生成并验收 1600×900 HTML 幻灯片；若已有通过验收的品牌 HTML deck，再按 HTML 转 PPTX 工作流执行分阶段转换、渲染和视觉校验。非公司品牌母版场景不要使用本技能。"

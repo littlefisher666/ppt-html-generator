@@ -1,10 +1,11 @@
 ---
 name: ppt-html-generator
 description: >
-  Create, modify, and validate PPT-compatible 1600×900 HTML slide decks, or convert an
-  existing validated HTML deck into PPTX with staged visual verification. Use for ppt-html,
-  HTML-to-PPT slide authoring, HTML 转 PPTX, PPTX visual validation, 恒达智控母版,
-  创信数智母版, 郑煤机母版, or /ppt-html-generator.
+  Create, modify, and validate company-brand PPT decks (恒达智控 / 创信数智 / 郑煤机) as
+  1600×900 HTML, or convert a validated brand HTML deck into PPTX with staged visual
+  verification. Use only for 公司专属 PPT / 品牌母版 / 恒达智控母版 / 创信数智母版 /
+  郑煤机母版, or when the user explicitly invokes /ppt-html-generator or $ppt-html-generator.
+  Do not use for generic PPT HTML, ordinary slide authoring, or non-branded decks.
 ---
 
 # PPT-Compatible HTML 生成与 HTML 转 PPTX
