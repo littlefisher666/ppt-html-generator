@@ -7,7 +7,8 @@ import { STAGE_HEIGHT, STAGE_WIDTH, assertDeckInput, prepareSlidePage, resolvePl
 const input = process.argv[2];
 if (!input || process.argv.length !== 3) { process.stderr.write("用法: node scripts/capture-html-slides.mjs <deck-root>\n"); process.exit(64); }
 const deckRoot = path.resolve(input); const deck = await assertDeckInput(deckRoot);
-const output = path.join(deckRoot, "exports", "pptx", "html-screenshots"); await mkdir(output, { recursive: true });
+const stageOutput = path.join(deckRoot, "pptx", "P2");
+const output = path.join(stageOutput, "html-screenshots"); await mkdir(output, { recursive: true });
 const playwright = await resolvePlaywright(deckRoot);
 const { chromium } = playwright.module;
 process.stdout.write(`使用 Playwright：${playwright.source} (${playwright.modulePath})\n`);
@@ -35,5 +36,5 @@ try {
     records.push({ page: slide.page, href: slide.href, title: slide.title || "", screenshot: `html-screenshots/${screenshot}`, width: STAGE_WIDTH, height: STAGE_HEIGHT }); await page.close();
   }
 } finally { await browser.close(); await server.close(); }
-await writeFile(path.join(deckRoot, "exports", "pptx", "page-map.json"), `${JSON.stringify({ generatedAt: new Date().toISOString(), slides: records }, null, 2)}\n`);
+await writeFile(path.join(stageOutput, "page-map.json"), `${JSON.stringify({ generatedAt: new Date().toISOString(), slides: records }, null, 2)}\n`);
 process.stdout.write(`已生成 ${records.length} 张 HTML 基准截图：${output}\n`);

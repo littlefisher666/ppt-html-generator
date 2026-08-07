@@ -1,8 +1,12 @@
 {
   "templateId": "layout-agenda-v5",
-  "brand": "恒达智控",
-  "source": "恒达智控目录母版；Logo 已从固定底图中排除，运行时仅接受恒达智控彩色 Logo",
-  "brandLogoSha256": "0fdf860a214d3f029e4df0631ad7ec32f3d12df748a06ac6b89c194dbf81379b",
+  "chromeKind": "shared-unified",
+  "source": "统一目录 chrome（无 Logo 底图 + 分档条目组件）；版式几何三品牌共用，运行时按 deck Logo 识别恒达智控/创信数智/郑煤机",
+  "acceptedBrandLogoSha256": {
+    "恒达智控": "0fdf860a214d3f029e4df0631ad7ec32f3d12df748a06ac6b89c194dbf81379b",
+    "创信数智": "b0d6c718ef244cabca7a6f567e41d96459614402151d55bc690d5d53d51ff89a",
+    "郑煤机": "1f9af995599f464af5a05d74d1470d6362018566a03487d141b0da3c80d21558"
+  },
   "files": {
     "agenda-fixed-base-no-logo.png": "59932e1b54b0373fb435520f6541d5f538716d658ca2d609a8276402de424bf2",
     "agenda-item-bar-48.png": "2d15c11bc5a0c80120c9e665109b60f1a8d7089f030dc6ad976c302701978443",

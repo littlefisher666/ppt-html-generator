@@ -21,7 +21,7 @@ PPTX 自动渲染后端；不使用 WPS 或 Microsoft PowerPoint 的自动化接
 5. 用最小 PPTX 冒烟验证：检查 PDF 可生成、PNG 页数与 PPTX 一致、页序稳定、每张 PNG 为 `1600 × 900`，并
    实际查看至少一张渲染图，确认不是空白页、错误字体或明显渲染失败。
 6. 验证通过后，将实际导出命令、PDF 栅格化命令和输出命名写入
-   `exports/pptx/render-backend-plan.md`。每次 PPTX 修复后，必须重新生成全部 PNG；不得复用旧渲染图。
+   `pptx/P1/render-backend-plan.md`。每次 PPTX 修复后，必须重新生成全部 PNG；不得复用旧渲染图。
 
 ## 自动化链路
 
@@ -46,8 +46,8 @@ PPTX 自动渲染后端；不使用 WPS 或 Microsoft PowerPoint 的自动化接
 - LibreOffice：24.8｜Homebrew Cask
 - 字体：Times New Roman、<中文字体>｜替代：无
 - 自动化：`soffice --headless` → PDF → PNG
-- 输入：`exports/pptx/<deck-name>.pptx`
-- 输出：`exports/pptx/pptx-renders/slide-<页码>.png`（1600 × 900）
+- 输入：`pptx/<deck-name>.pptx`
+- 输出：`pptx/P6/pptx-renders/slide-<页码>.png`（1600 × 900）
 - 冒烟验证：通过｜命令与时间
 - 冒烟结果：PDF 页数/尺寸、PNG 页数/尺寸、抽查页视觉结果
 - 复测：每次 PPTX 写入后，重新导出全部页面，再运行叠加/差异图与大模型审查

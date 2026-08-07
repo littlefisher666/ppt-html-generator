@@ -8,7 +8,7 @@ P1 已通过。
 
 1. [HTML 转 PPTX 工作流](../html-to-pptx.md)；
 2. [全局硬约束](../global-constraints.md)；
-3. `exports/pptx/input-review.md`、`runtime-dependency-review.md`、`tasks.md`、`pptx-stage-gates.md`；
+3. `pptx/P1/input-review.md`、`P1/runtime-dependency-review.md`、`P1/tasks.md`、`P1/pptx-stage-gates.md`；
 4. 输入 deck 的 `assets/deck.js`、页面 HTML 与共享 CSS。
 
 ## 执行
@@ -31,10 +31,10 @@ P1 已通过。
   加载失败即失败，不得以未完成渲染的截图继续；
 - 使用可见视口截图（`fullPage: false`），不得裁切、缩放、拼接或后处理；
 - 输出命名为 `<页码两位数>-<slide 文件名>.png`，例如 `05-device-status.png`，保存至
-  `exports/pptx/html-screenshots/`。
+  `pptx/P2/html-screenshots/`。
 
 转换器实现时必须将 Playwright 及其 Chromium 版本、实际执行命令、服务器地址和截图失败项写入
-`exports/pptx/baseline-review.md`。P1 的 `runtime-dependency-review.md` 未通过，或截图脚本未落地并验证时，
+`pptx/P2/baseline-review.md`。P1 的 `P1/runtime-dependency-review.md` 未通过，或截图脚本未落地并验证时，
 P2 不得标记为通过。
 
 P1 通过后执行（`<skill>` 为本技能目录）：
@@ -49,18 +49,20 @@ node <skill>/scripts/extract-html-coordinate-map.mjs <deck-root>
 
 ### 建立基准与定位模型
 
-1. 使用上述固定方式为每个 HTML 页面截图，保存至 `exports/pptx/html-screenshots/`，并记录页码、文件名、尺寸和
+1. 使用上述固定方式为每个 HTML 页面截图，保存至 `pptx/P2/html-screenshots/`，并记录页码、文件名、尺寸和
    生成时间。
 2. 创建同页数、同页面尺寸的 PPTX，将每页截图作为临时视觉基准层铺入对应页面；校验页序、尺寸和位置。整页
    截图仅用于复原和比对，不得作为最终成品内容。
 3. 从实际 DOM 与计算样式提取模板元素、文字、媒体和其他可见元素的边界、层级、类型和 class 列表，写入
-   `exports/pptx/coordinate-map.json`；每个元素至少记录稳定标识、页码、类型、可见性、可编辑性、来源、
-   `x/y/width/height`、层级、变换/裁切/透明度及降级方式（如有）。生成逐页框线图至
-   `exports/pptx/guide-frames/` 并作为临时 PPTX 辅助层。
-4. 按 `assets/deck.js` 页序创建 `exports/pptx/page-map.json`，一一记录页号、HTML 文件、HTML 截图、PPTX 页号和
+   `pptx/P2/coordinate-map.json`；每个元素至少记录稳定标识、页码、类型、可见性、可编辑性、来源、
+   `x/y/width/height`、层级、变换/裁切/透明度及降级方式（如有）。必须额外记录 `parentId`、`conversionType`、
+   叶子文本标记及计算样式（字体、字号、字重、颜色、对齐、填充、边框、圆角、图片比例）；后续 P3/P5 只能以此
+   清单原生组装 PPT 元素，不得以整页截图替代。文本叶子节点主几何使用墨迹紧边界（text-ink），非文本使用布局盒（layout-box）。生成逐页框线图至
+   `pptx/P2/guide-frames/` ；P3 的 framework-deck.pptx 必须把这些框线作为临时辅助层（guide-frame:* 形状）写入每一页，不得只保留 SVG 文件而不进 PPTX。
+4. 按 `assets/deck.js` 页序创建 `pptx/P2/page-map.json`，一一记录页号、HTML 文件、HTML 截图、PPTX 页号和
    PPTX 渲染图的目标路径；后续阶段只能按该映射比对，禁止依赖文件名自然排序。
 
 ## P2 检查与交接
 
-写入 `exports/pptx/baseline-review.md`，逐页记录截图、PPTX 基准层、框线图和坐标清单的页序/尺寸/路径，以及
-提取失败或不支持元素。所有页面一一对应、坐标清单和页面映射均可读取后，在 `pptx-stage-gates.md` 标记 P2 通过。
+写入 `pptx/P2/baseline-review.md`，逐页记录截图、PPTX 基准层、框线图和坐标清单的页序/尺寸/路径，以及
+提取失败或不支持元素。所有页面一一对应、坐标清单和页面映射均可读取后，在 `P2/pptx-stage-gates.md` 标记 P2 通过。

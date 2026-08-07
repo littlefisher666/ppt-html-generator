@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 
 /**
- * 从 HTML deck 生成目录页 PPT 模板与可配置目录项页面。
+ * 从 HTML deck 生成目录页模板定义与可配置目录项数据。
  *
  * 固定层（不含 Logo 的背景 + CONTENTS + “目录” + 中部图形）使用技能内置高清图；
  * Logo 从 deck 品牌资源独立放置。右侧目录项的长条背景与左侧编号方块使用内置高清图；
- * 仅编号与标题保持可编辑文本。
+ * 仅编号与标题在后续 framework-deck 中作为可编辑文本。
  *
  * 产物：
- * - exports/pptx/template-assets/agenda-fixed-base.png  （高清固定底图）
- * - exports/pptx/template-assets/agenda-item-bar-*.png（高清条目长条背景）
- * - exports/pptx/template-assets/agenda-item-number-*.png（高清编号方块）
- * - exports/pptx/agenda-template.json
- * - exports/pptx/template-review.md
- * - exports/pptx/fixed-pages-review.md
- * - exports/pptx/<deck-name>-agenda.pptx
+ * - pptx/P3/template-assets/agenda-fixed-base.png  （高清固定底图）
+ * - pptx/P3/template-assets/agenda-item-bar-*.png（高清条目长条背景）
+ * - pptx/P3/template-assets/agenda-item-number-*.png（高清编号方块）
+ * - pptx/P3/agenda-template.json
+ * - pptx/P3/template-review.md
+ * - pptx/P3/fixed-pages-review.md
+ *
+ * 不单独输出目录页 PPTX；目录页只应作为 framework-deck.pptx 的一部分装配。
  *
  * 用法：node scripts/build-agenda-template.mjs <deck-root>
  */
@@ -23,12 +24,12 @@ import { copyFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawn } from "node:child_process";
 import {
   STAGE_HEIGHT,
   STAGE_WIDTH,
   assertDeckInput,
 } from "./pptx-html-utils.mjs";
+import { detectDeckBrand } from "./pptx-brand-utils.mjs";
 import {
   AGENDA_TEMPLATE_ID,
   DELIVERY_IMAGE_SCALE,
@@ -46,16 +47,17 @@ if (!input || process.argv.length !== 3) {
 
 const deckRoot = path.resolve(input);
 const deck = await assertDeckInput(deckRoot);
-const outputDir = path.join(deckRoot, "exports", "pptx");
+const outputDir = path.join(deckRoot, "pptx", "P3");
+const fixedPagesOutputDir = path.join(deckRoot, "pptx", "P3");
 const assetsDir = path.join(outputDir, "template-assets");
 await mkdir(assetsDir, { recursive: true });
+await mkdir(fixedPagesOutputDir, { recursive: true });
 
 const skillDir = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.dirname(skillDir);
 // 目录固定底图与条目组件不含任何品牌元素，属于所有品牌共用资产。
 const staticAgendaAssetsDir = path.join(skillRoot, "assets", "shared", "agenda-template");
 const staticAgendaManifestPath = path.join(staticAgendaAssetsDir, "manifest.json");
-const pythonBuilder = path.join(skillDir, "build-agenda-pptx.py");
 
 async function pathExists(target) {
   try {
@@ -83,11 +85,15 @@ async function sha256(filePath) {
 
 async function loadVerifiedAgendaAssetManifest() {
   const manifest = JSON.parse(await readFile(staticAgendaManifestPath, "utf8"));
-  if (manifest.templateId !== AGENDA_TEMPLATE_ID || manifest.brand !== "恒达智控") {
-    throw new Error("目录模板资产 manifest 不匹配；仅支持已验证的恒达智控目录母版");
+  if (manifest.templateId !== AGENDA_TEMPLATE_ID) {
+    throw new Error("目录模板资产 templateId 不匹配：期望 " + AGENDA_TEMPLATE_ID);
   }
   if (!manifest.files || typeof manifest.files !== "object") {
     throw new Error("目录模板资产 manifest 缺少 files 哈希记录");
+  }
+  const accepted = manifest.acceptedBrandLogoSha256 || (manifest.brandLogoSha256 ? { legacy: manifest.brandLogoSha256 } : null);
+  if (!accepted || !Object.keys(accepted).length) {
+    throw new Error("目录模板资产 manifest 缺少 acceptedBrandLogoSha256");
   }
   for (const [name, expectedHash] of Object.entries(manifest.files)) {
     const sourcePath = path.join(staticAgendaAssetsDir, name);
@@ -99,19 +105,20 @@ async function loadVerifiedAgendaAssetManifest() {
   return manifest;
 }
 
-async function assertSupportedBrand(manifest) {
-  const logoPath = path.join(deckRoot, "assets", "brand", "logo-color.png");
-  if (!(await pathExists(logoPath))) throw new Error("缺少目录页彩色 Logo：assets/brand/logo-color.png");
-  if ((await sha256(logoPath)) !== manifest.brandLogoSha256) {
+async function assertSupportedBrand(manifest, brand) {
+  const accepted = manifest.acceptedBrandLogoSha256 || {};
+  const allowedHashes = new Set(Object.values(accepted));
+  if (manifest.brandLogoSha256) allowedHashes.add(manifest.brandLogoSha256);
+  if (!allowedHashes.has(brand.logoColorSha256)) {
     throw new Error(
-      "当前 deck 的彩色 Logo 不属于已验证的恒达智控目录模板；目录页模板转换目前仅支持恒达智控母版"
+      "当前 deck 品牌 Logo 未在目录 chrome 的接受清单中：" + brand.name + " / " + brand.logoColorSha256
     );
   }
 }
 
 function assertClose(label, actual, expected, tolerance = 1) {
   if (!Number.isFinite(actual) || Math.abs(actual - expected) > tolerance) {
-    throw new Error(`${label} 与已验证的恒达目录母版不一致：期望 ${expected}±${tolerance}，实际 ${actual}`);
+    throw new Error(`${label} 与统一目录母版几何不一致：期望 ${expected}±${tolerance}，实际 ${actual}`);
   }
 }
 
@@ -120,9 +127,9 @@ function findVisibleClassElement(elements, className) {
 }
 
 async function assertAgendaCoordinateMap(pages) {
-  const coordinateMapPath = path.join(outputDir, "coordinate-map.json");
+  const coordinateMapPath = path.join(deckRoot, "pptx", "P2", "coordinate-map.json");
   if (!(await pathExists(coordinateMapPath))) {
-    throw new Error("缺少 P2 坐标清单 exports/pptx/coordinate-map.json；请先运行 extract-html-coordinate-map.mjs");
+    throw new Error("缺少 P2 坐标清单 pptx/P2/coordinate-map.json；请先运行 extract-html-coordinate-map.mjs");
   }
   const map = JSON.parse(await readFile(coordinateMapPath, "utf8"));
   if (map?.canvas?.width !== STAGE_WIDTH || map?.canvas?.height !== STAGE_HEIGHT || !Array.isArray(map.slides)) {
@@ -248,9 +255,9 @@ function assertAgendaContinuationDistribution(pages) {
 }
 
 /**
- * 复制经 manifest 哈希验证的恒达目录页内置高清模板资产。
+ * 复制经 manifest 哈希验证的统一目录页内置高清模板资产。
  *
- * 固定背景与目录项 chrome 对所有使用恒达目录母版的 deck 都一致，因此不得在
+ * 固定背景与目录项 chrome 对三品牌统一版式一致，因此不得在
  * 每次转换时启动浏览器重新截图。右上角 Logo 保持为 deck 内可追溯的品牌资源，
  * 由 PPTX 生成器单独放置。
  */
@@ -389,7 +396,7 @@ async function prepareAgendaAssets(pages) {
   };
 }
 
-function renderTemplateReview(pages, fixedImage, itemChromes, pptxName) {
+function renderTemplateReview(pages, fixedImage, itemChromes) {
   const chromeList = Object.values(itemChromes);
   const lines = [
     "# 共享模板复核（目录页模板）",
@@ -427,7 +434,7 @@ function renderTemplateReview(pages, fixedImage, itemChromes, pptxName) {
             ")"
         )
         .join("; "),
-    "PPTX：`" + pptxName + "`",
+    "装配目标：`framework-deck.pptx` 中的目录页（不单独导出目录 PPTX）",
     "",
     "## 固定元素（内置高清资产）",
     "",
@@ -509,29 +516,10 @@ function renderFixedPagesReview(pages, fixedImage, itemChromes) {
     lines.push("- 条目：");
     for (const item of page.items) lines.push("  - " + item.number + " " + item.title);
     lines.push("- 结构检查：固定层、条背景和编号方块均为已验证高清资产；编号方块独立放置；仅编号/标题可编辑");
-    lines.push("- 待完成：必须在 P6 渲染 PPTX 并与 HTML 逐页视觉比对后，才能得出视觉通过结论");
+    lines.push("- 待完成：目录页由 build-framework-deck 装配进 framework-deck.pptx，再在后续渲染阶段与 HTML 逐页视觉比对");
     lines.push("");
   }
   return lines.join("\n") + "\n";
-}
-
-function runPython(args) {
-  return new Promise((resolve, reject) => {
-    const child = spawn("python3", args, { stdio: ["ignore", "pipe", "pipe"] });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk;
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk;
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) resolve({ stdout, stderr });
-      else reject(new Error(stderr || stdout || "python3 退出码 " + code));
-    });
-  });
 }
 
 const pages = await loadAgendaPages();
@@ -541,19 +529,20 @@ if (!pages.length) {
 }
 
 assertAgendaContinuationDistribution(pages);
+const brand = await detectDeckBrand(deckRoot);
 const assetManifest = await loadVerifiedAgendaAssetManifest();
-await assertSupportedBrand(assetManifest);
+await assertSupportedBrand(assetManifest, brand);
 await assertAgendaCoordinateMap(pages);
 const assets = await prepareAgendaAssets(pages);
 const fixedImage = assets.fixedImage;
 const itemChromes = assets.itemChromes;
 const template = buildTemplateDefinition();
 const deckName = path.basename(deckRoot);
-const pptxName = deckName + "-agenda.pptx";
 const model = {
   generatedAt: new Date().toISOString(),
   deckRoot,
   deckTitle: deck.title || deckName,
+  brand: { key: brand.key, name: brand.name, logoColorSha256: brand.logoColorSha256 },
   fixedImage: {
     path: fixedImage.path,
     relativePath: fixedImage.relativePath,
@@ -580,36 +569,30 @@ const modelPath = path.join(outputDir, "agenda-template.json");
 await writeFile(modelPath, JSON.stringify(model, null, 2) + "\n", "utf8");
 await writeFile(
   path.join(outputDir, "template-review.md"),
-  renderTemplateReview(pages, fixedImage, itemChromes, pptxName),
+  renderTemplateReview(pages, fixedImage, itemChromes),
   "utf8"
 );
 await writeFile(
-  path.join(outputDir, "fixed-pages-review.md"),
+  path.join(fixedPagesOutputDir, "fixed-pages-review.md"),
   renderFixedPagesReview(pages, fixedImage, itemChromes),
   "utf8"
 );
 
-const pptxPath = path.join(outputDir, pptxName);
-const result = await runPython([pythonBuilder, modelPath, pptxPath]);
-if (result.stdout) process.stdout.write(result.stdout);
-if (result.stderr) process.stderr.write(result.stderr);
-
 const gatesPath = path.join(outputDir, "pptx-stage-gates.md");
+const note =
+  "目录模板定义已生成：agenda-template.json + 高清固定底图 " +
+  fixedImage.relativePath +
+  " + 独立条背景/编号方块；不单独输出目录 PPTX，待 build-framework-deck 装配";
 if (await pathExists(gatesPath)) {
   let gates = await readFile(gatesPath, "utf8");
-  const note =
-    "目录模板已生成：" +
-    pptxName +
-    "；高清固定底图 " +
-    fixedImage.relativePath +
-    " + 独立条背景/编号方块；证据 agenda-template.json / template-review.md";
-  const next = gates
-    .replace(/^\| P3 \|.*?\|$/m, "| P3 | 部分完成 | " + note + " |")
-    .replace(
-      /^\| P4 \|.*?\|$/m,
-      "| P4 | 部分完成 | 目录页右侧项已配置（独立高清条背景/编号方块+可编辑编号/标题）；其他固定版式页仍待实现 |"
-    );
+  const next = gates.replace(/^\| P3 \|.*?\|$/m, "| P3 | 部分完成 | " + note + " |");
   if (next !== gates) await writeFile(gatesPath, next, "utf8");
+} else {
+  await writeFile(
+    gatesPath,
+    "# P3 阶段门禁\n\n| 门禁 | 状态 | 证据/说明 |\n|---|---|---|\n| P3 | 部分完成 | " + note + " |\n",
+    "utf8"
+  );
 }
 
 process.stdout.write(
@@ -631,7 +614,6 @@ process.stdout.write(
     "- 模型：" +
     modelPath +
     "\n" +
-    "- PPTX：" +
-    pptxPath +
-    "\n"
+    "- 品牌：" + brand.name + " (" + brand.key + ")\n" +
+    "- 说明：不单独输出目录 PPTX，目录页由 build-framework-deck.mjs 装配进 framework-deck.pptx\n"
 );

@@ -82,6 +82,20 @@ async function importPlaywrightModule(modulePath) {
   return resolved;
 }
 
+async function resolveProjectRootPlaywrightModulePath(deckRoot) {
+  const deckPath = path.resolve(deckRoot);
+  let cursor = path.dirname(deckPath);
+  while (cursor !== path.dirname(cursor)) {
+    const packagePath = path.join(cursor, "package.json");
+    const modulePath = path.join(cursor, "node_modules", "playwright", "index.js");
+    if ((await pathExists(packagePath)) && (await pathExists(modulePath))) {
+      return { projectRoot: cursor, modulePath };
+    }
+    cursor = path.dirname(cursor);
+  }
+  return null;
+}
+
 async function resolveGlobalPlaywrightModulePath() {
   const { execFile } = await import("node:child_process");
   const { promisify } = await import("node:util");
@@ -104,7 +118,8 @@ async function resolveGlobalPlaywrightModulePath() {
 /**
  * 按固定优先级解析 Playwright：
  * 1. deck 本地：<deck-root>/node_modules/playwright
- * 2. 全局 npm：`npm root -g`/playwright
+ * 2. deck 所在项目根目录：<project-root>/node_modules/playwright
+ * 3. 全局 npm：`npm root -g`/playwright
  * 找到包后，只接受该包的 chromium.executablePath() 指向的浏览器。不得扫描缓存选择其他 revision，
  * 也不得接受 PLAYWRIGHT_EXECUTABLE_PATH 或系统 Chrome / Edge；否则基准截图不可复现。
  */
@@ -117,6 +132,15 @@ export async function resolvePlaywright(deckRoot) {
       installHint: `在 deck 根目录执行 npm install --save-dev playwright && npx playwright install chromium`,
     },
   ];
+
+  const projectRootModule = await resolveProjectRootPlaywrightModulePath(root);
+  if (projectRootModule) {
+    candidates.push({
+      source: "project-root",
+      modulePath: projectRootModule.modulePath,
+      installHint: `在项目根目录 ${projectRootModule.projectRoot} 执行 npm install --save-dev playwright && npx playwright install chromium`,
+    });
+  }
 
   const globalModulePath = await resolveGlobalPlaywrightModulePath();
   if (globalModulePath) {
@@ -155,18 +179,20 @@ export async function resolvePlaywright(deckRoot) {
   }
 
   const hasLocalPackage = await pathExists(path.join(root, "node_modules", "playwright", "index.js"));
+  const hasProjectRootPackage = Boolean(projectRootModule);
   const hasGlobalPackage = Boolean(globalModulePath);
   const lines = [
     "未找到可启动的 Playwright Chromium。",
-    "检查顺序：1) deck 本地 node_modules/playwright；2) 全局 npm 安装的 playwright。",
+    "检查顺序：1) deck 本地 node_modules/playwright；2) 项目根目录 node_modules/playwright；3) 全局 npm 安装的 playwright。",
     ...inspected.map((item) => `- ${item}`),
   ];
-  if (!hasLocalPackage && !hasGlobalPackage) {
-    lines.push("两处均未安装 playwright 包。优先在 deck 根目录执行：npm install --save-dev playwright && npx playwright install chromium");
+  if (!hasLocalPackage && !hasProjectRootPackage && !hasGlobalPackage) {
+    lines.push("三处均未安装 playwright 包。优先在项目根目录执行：npm install --save-dev playwright && npx playwright install chromium");
     lines.push("或全局安装：npm install -g playwright && npx playwright install chromium");
   } else {
     lines.push("已找到 playwright 包，但对应 Chromium 未就绪。请只补装浏览器，不要重复安装包：");
     if (hasLocalPackage) lines.push(`- deck 本地：cd ${root} && npx playwright install chromium`);
+    if (hasProjectRootPackage) lines.push(`- 项目根目录：cd ${projectRootModule.projectRoot} && npx playwright install chromium`);
     if (hasGlobalPackage) lines.push("- 全局：npx --yes playwright install chromium");
   }
   throw new Error(lines.join("\n"));
