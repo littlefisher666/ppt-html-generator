@@ -10,24 +10,27 @@ description: >
 
 # PPT-Compatible HTML 生成与 HTML 转 PPTX
 
-本技能提供两项彼此独立的功能。开始工作前先阅读本文件，再根据任务类型完整阅读对应功能文档；不要把
-HTML 生成流程和 PPTX 转换流程混用。
+本技能提供 HTML 生成与 HTML→PPTX 转换两类能力。PPTX 转换只有**混合版**一条流程：
+2× 无字背景位图承载卡片、渐变、图表与装饰，原生文本框承载全部可编辑文字。
 
 | 功能 | 适用场景 | 操作文档 |
 |---|---|---|
 | 生成可转 PPT 的 HTML | 新建、修改、检查 1600×900 的品牌 HTML 幻灯片 deck | [HTML 生成工作流](references/html-generation.md) |
-| 将既有 HTML 转为 PPTX | 输入已生成且结构完整的 HTML deck，产出可交付的 `.pptx` | [HTML 转 PPTX 工作流](references/html-to-pptx.md) |
+| HTML 转 PPTX（混合版） | 输入已生成且结构完整的 HTML deck，产出“位图底板 + 可编辑文字”的 `.pptx` | [HTML 转 PPTX 工作流](references/html-to-pptx.md)、[P3 阶段](references/pptx-stages/hybrid.md) |
+
+旧的原生组装流程（原 P3–P5）已移除，不再作为可选方案或回退路径。混合版流程固定为
+P1 输入、P2 视觉基准、P3 转换与验收；已有 deck 若保留旧 P3–P5 目录，须先归档，避免与新的 P3 冲突。
 
 ## 运行时依赖
 
 - 仅生成或检查 HTML：Node.js；涉及截图和坐标提取时，另需 Playwright 与其专用 Chromium。解析顺序为 deck
   本地 `node_modules/playwright`、deck 所在项目根目录的 `node_modules/playwright`、全局 npm 安装的
   `playwright`；不使用系统 Google Chrome / Edge。
-- 完整 HTML 转 PPTX 的 Codex 验收路径：除上述依赖外，需要可执行的 `python3`，用于运行 Presentations runtime
-  提供的 `container_tools/render_slides.py`。该脚本依赖 Presentations runtime 已配置的 Python 包和渲染工具，
-  不应在本技能目录内临时 `pip install` 或复制脚本。
-- 非 Codex 环境：不调用 `render_slides.py`；按 [非 Codex PPTX 渲染后端](references/pptx-renderer-backends.md)
-  准备 LibreOffice、PDF 栅格化工具及其运行依赖。
+- HTML 转 PPTX（混合版）：除 Node.js、Playwright 外，需要 `python3` 及 `python-pptx`、`lxml`、`Pillow`；
+  渲染与基线标定需要 LibreOffice 与 `pdftoppm`。基线标定与背景采集都必须在本机可执行。
+- Codex 环境可优先使用 Presentations runtime 的 `render_slides.py`；不可用时按
+  [非 Codex PPTX 渲染后端](references/pptx-renderer-backends.md)使用 LibreOffice + PDF 栅格化链路。
+  两种后端都不得以 WPS/PowerPoint 人工导出替代 L2 自动验收。
 
 ## 共用参考
 
@@ -37,14 +40,29 @@ HTML 生成流程和 PPTX 转换流程混用。
 - 最终 QA：[qa-checklist.md](references/qa-checklist.md)
 - 问题定位：[issue-catalog.md](references/issue-catalog.md)
 
-当前已内置转换前的工作区初始化、HTML 基准截图、DOM 坐标提取与框线图工具，以及 P3 的模板与框架装配链路：
+## 当前实现
 
-- **共享母版转换**（`scripts/build-shared-template.mjs`）：从真实 deck 与 P2 坐标清单生成封面、章节、内容页 chrome、封底四类共享模板。品牌背景、Logo、渐变遮罩、内容页三段横线与安全区锚点版式几何三品牌统一，按 deck 品牌 Logo/背景生成，供 P3 全页框架装配调用。
-- **目录页模板转换**（`scripts/build-agenda-template.mjs`）：生成统一目录模板定义与资产；目录页固定底图与条目组件为三品牌共用内置高清资产，长条与编号方块独立放置；**不单独输出目录 PPTX**，由 framework-deck 统一装配。
+1. **P1/P2 预处理**：`init-pptx-workspace.mjs` 初始化工作区，`capture-html-slides.mjs` 按 `deck.js`
+   页序生成 1× HTML 基准截图与 `page-map.json`。
+2. **P3 混合版链路**：
+   - `capture-hybrid-backgrounds.mjs`：逐文本节点采集文字真值，隐藏可编辑字形后输出 2× JPEG 背景；
+     竖排与半透明文字标记 `bitmapOnly` 并保留在位图；
+   - `calibrate-hybrid-text.py`：按字号/行高组合实测 LibreOffice 基线；
+   - `build-hybrid-deck.mjs`：生成文字计划并调用 `apply-hybrid-text-plan.py` 组装 PPTX（共享写入器
+     `pptx-text-writer.py`；精确行距、行内拆框、中西文字距补偿）；
+   - `render-pptx-slides.py` + `compare-pptx-html.py`：逐页渲染并与 P2 截图生成 side/overlay/diff。
 
-- **完整页面框架装配**（scripts/build-framework-deck.mjs）：按 deck.js 页序生成 P3/framework-deck.pptx，写入固定页可编辑内容、内容页 chrome + 标题区 + 空白业务安全区，并叠加全部页面的 P2 框线辅助层（guide-frame:*）。
+调用顺序、参数、产物与门禁见 [hybrid.md](references/pptx-stages/hybrid.md)。
 
-P3 视觉渲染比对、P4 内容页业务区复原、最终自动视觉比对与全 deck 交付主链路仍待完成。后续必须以 P2 元素坐标和 P3 原生框架组装 PPTX；禁止以整页 HTML 截图或隐藏文字后的整页截图作为最终页面背景。不得把模板/框架已生成表述为完整 deck HTML 转 PPTX 交付能力。
+## 交付边界
 
-图片清晰度：贴入 PPT 的位图必须高清（默认 ≥2×）；仅用于检查/比对的截图可用 1×，能辨认即可。详见
+混合版的文字（含标题、正文、表格文字、页脚）是原生可编辑文本框；卡片、色块、图表、图标、照片与
+装饰图形是背景位图，不能在 PowerPoint 中单独改形状或改底色。交付前必须向用户说明这一边界，并在
+验收记录中登记 `bitmapOnly` 文字与不可编辑的底板元素。
+
+底板位图只能由 `capture-hybrid-backgrounds.mjs` 生成（可编辑文字字形已隐藏）。禁止使用带文字的
+整页截图、P2 检查用 1× 截图或任何外部截图作为交付底板。修改文字后不会重排底板，文字变长可能溢出
+卡片，需要改回 HTML 重转。
+
+图片清晰度：贴入 PPT 的背景必须高清（2×，≥3200×1800）；仅用于检查/比对的截图可用 1×。详见
 [global-constraints.md](references/global-constraints.md) 与 [html-to-pptx.md](references/html-to-pptx.md)。

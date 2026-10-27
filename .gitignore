@@ -31,3 +31,7 @@ assets/hengda/恒达智控母版.pptx
 *.swp
 *.swo
 *~
+
+# Python bytecode
+__pycache__/
+*.pyc

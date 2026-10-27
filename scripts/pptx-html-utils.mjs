@@ -198,6 +198,181 @@ export async function resolvePlaywright(deckRoot) {
   throw new Error(lines.join("\n"));
 }
 
+export function parseFontFamilies(fontFamily) {
+  return String(fontFamily || "")
+    .split(",")
+    .map((item) => item.trim().replace(/^["']|["']$/g, ""))
+    .filter(Boolean);
+}
+
+const GENERIC_FONT_FAMILIES = new Set(["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui"]);
+
+export function isWesternOnlyFont(family) {
+  return /times|arial|helvetica|georgia|garamond|cambria|calibri|verdana|tahoma|trebuchet|courier|palatino|symbol|wingdings/i.test(
+    String(family || "")
+  );
+}
+
+/** 从 CSS 字体栈中取 PPT 应使用的中文主字体（跳过 Times New Roman 与泛型族）。 */
+export function preferredChineseFontFromStack(fontFamily) {
+  for (const family of parseFontFamilies(fontFamily)) {
+    if (GENERIC_FONT_FAMILIES.has(family)) continue;
+    if (isWesternOnlyFont(family)) continue;
+    return family;
+  }
+  return null;
+}
+
+/** 优先用 P2 实际命中字体，其次 CSS 栈中的中文主字体。 */
+export function preferredPptFontFromStyle(style = {}) {
+  const used = style.fontFamilyUsed || null;
+  if (used && !GENERIC_FONT_FAMILIES.has(used) && !isWesternOnlyFont(used)) return used;
+  const fromStack = preferredChineseFontFromStack(style.fontFamilyCss || style.fontFamily || "");
+  if (fromStack) return fromStack;
+  if (used) return used;
+  const first = parseFontFamilies(style.fontFamilyCss || style.fontFamily || "")[0];
+  return first || null;
+}
+
+function readCssToken(cssText, tokenName) {
+  const re = new RegExp(tokenName + "\s*:\s*([^;]+);", "i");
+  const match = String(cssText || "").match(re);
+  return match ? match[1].trim() : null;
+}
+
+/** 从 deck 的 assets/ppt.css 解析 HTML 字体约定，供 P3 写入 PPT 时使用。 */
+export async function resolveDeckTypography(deckRoot) {
+  const cssPath = path.join(deckRoot, "assets", "ppt.css");
+  const cssText = await readFile(cssPath, "utf8");
+  const headingStack = readCssToken(cssText, "--font-heading");
+  const bodyStack = readCssToken(cssText, "--font-body");
+  const uiStack = readCssToken(cssText, "--font-ui");
+  const stack = headingStack || bodyStack || uiStack;
+  if (!stack) {
+    throw new Error("assets/ppt.css 未声明 --font-heading / --font-body / --font-ui，无法解析 HTML 字体");
+  }
+  const primaryChinese = preferredChineseFontFromStack(stack);
+  if (!primaryChinese) {
+    throw new Error("无法从 assets/ppt.css 字体栈解析中文主字体：" + stack);
+  }
+  return {
+    source: "assets/ppt.css",
+    stack,
+    headingStack: headingStack || stack,
+    bodyStack: bodyStack || stack,
+    uiStack: uiStack || stack,
+    latin: "Times New Roman",
+    primaryChinese,
+  };
+}
+
+function normalizeComparableText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function leafTextElements(elements = []) {
+  return (elements || []).filter(
+    (element) =>
+      element &&
+      element.visible !== false &&
+      (element.type === "text" || element.conversionType === "text" || element.isLeafText) &&
+      element.style
+  );
+}
+
+export function resolveFontFromElements(elements, { text = null, classNames = [], tags = [] } = {}) {
+  const candidates = leafTextElements(elements);
+  const classSet = new Set((classNames || []).filter(Boolean));
+  const tagSet = new Set((tags || []).map((item) => String(item || "").toLowerCase()).filter(Boolean));
+  const wanted = normalizeComparableText(text);
+
+  const scored = [];
+  for (const element of candidates) {
+    let score = 0;
+    const classes = Array.isArray(element.classes) ? element.classes : [];
+    const selector = String(element.selector || "");
+    const tag = selector.split(/[#.\[]/)[0].toLowerCase();
+    const elementText = normalizeComparableText(element.text);
+
+    if (classSet.size) {
+      const hit = classes.some((name) => classSet.has(name));
+      if (hit) score += 8;
+      else continue;
+    }
+    if (tagSet.size) {
+      const tagHit =
+        tagSet.has(tag) ||
+        [...tagSet].some((name) => selector === name || selector.startsWith(name + ".") || selector.startsWith(name + "#"));
+      if (tagHit) score += 4;
+      else if (classSet.size === 0) continue;
+    }
+    if (wanted) {
+      if (elementText === wanted) score += 10;
+      else if (elementText && (wanted.includes(elementText) || elementText.includes(wanted))) score += 5;
+      else if (classSet.size === 0 && tagSet.size === 0) continue;
+    }
+    if (score > 0) scored.push({ score, element });
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  for (const item of scored) {
+    const font = preferredPptFontFromStyle(item.element.style || {});
+    if (font) return font;
+  }
+  return null;
+}
+
+export function resolvePageFontsFromCoordinateMap(slideElements, page, deckTypography) {
+  const fallback = deckTypography.primaryChinese;
+  const elements = slideElements || [];
+  const layout = page.layout;
+  const fonts = {
+    default: fallback,
+    title: fallback,
+    subtitle: fallback,
+    meta: fallback,
+    sectionNumber: fallback,
+    org: fallback,
+    agendaNumber: fallback,
+    agendaTitle: fallback,
+  };
+
+  const byText = (value, extra = {}) => resolveFontFromElements(elements, { text: value, ...extra });
+  const byClass = (...classNames) => resolveFontFromElements(elements, { classNames });
+
+  if (layout === "cover") {
+    fonts.title = byText(page.title, { tags: ["h1"] }) || byClass("cover-title") || fonts.title;
+    fonts.subtitle = byText(page.subtitle, { classNames: ["subtitle"] }) || byClass("subtitle") || fonts.subtitle;
+    fonts.meta =
+      (Array.isArray(page.metaLines) && page.metaLines.length ? byText(page.metaLines[0]) : null) ||
+      byClass("cover-meta") ||
+      fonts.meta;
+  } else if (layout === "section") {
+    fonts.sectionNumber =
+      byText(page.sectionNumber, { classNames: ["section-number"], tags: ["strong"] }) ||
+      byClass("section-number") ||
+      fonts.sectionNumber;
+    fonts.title = byText(page.title, { tags: ["h1"] }) || fonts.title;
+    fonts.subtitle = byText(page.subtitle, { classNames: ["subtitle"] }) || byClass("subtitle") || fonts.subtitle;
+  } else if (layout === "content") {
+    fonts.title = byText(page.title, { tags: ["h1"] }) || fonts.title;
+    fonts.subtitle = byText(page.subtitle, { classNames: ["subtitle"] }) || byClass("subtitle") || fonts.subtitle;
+  } else if (layout === "closing") {
+    fonts.title = byText(page.title, { tags: ["h1"] }) || fonts.title;
+    fonts.subtitle = byText(page.subtitle, { classNames: ["subtitle"] }) || byClass("subtitle") || fonts.subtitle;
+    fonts.org = byText(page.org) || fonts.org;
+  } else if (layout === "agenda") {
+    fonts.agendaNumber = byClass("agenda-number") || resolveFontFromElements(elements, { tags: ["b"] }) || fonts.agendaNumber;
+    fonts.agendaTitle =
+      byClass("agenda-label", "agenda-title-text") ||
+      resolveFontFromElements(elements, { tags: ["strong"] }) ||
+      fonts.agendaTitle;
+    fonts.title = fonts.agendaTitle;
+  }
+
+  return fonts;
+}
+
 export async function prepareSlidePage(page, url) {
   await page.emulateMedia({ media: "screen", reducedMotion: "reduce" });
   await page.goto(url, { waitUntil: "load" });

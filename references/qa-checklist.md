@@ -190,6 +190,52 @@
 - [ ] 导航链接有可见焦点、禁用状态和可访问名称；`@media print` 或导出样式中
   `[data-ppt-ui]` / `.slide-nav` 被隐藏，不进入 PPT 页面。
 
+## 2.5 混合版 PPTX 验收（P3）
+
+混合版（P3）是 HTML 转 PPTX 的**唯一流程**，每次转换都必须执行。此处验收
+“位图背景 + 原生文字”的交付物；HTML 侧仍须先通过本清单 1–2 节。
+完整流程见 [hybrid.md](pptx-stages/hybrid.md)。
+
+### H. 采集与资产
+
+- [ ] `P3/text-nodes.json` 的文字节点数与 HTML 中可见文本节点一致；每页
+  `hiddenTextNodes + bitmapOnlyTextNodes === texts.length`，采集脚本的断言未被绕过。
+- [ ] `bitmapOnly` 只用于 `writing-mode: vertical-*` 与字符 alpha < 0.99 的节点；
+  这些字形完整保留在背景位图中，且 **没有** 在同位置生成原生文本框。
+- [ ] `P3/backgrounds/` 为每页 2× 位图（逻辑 1600×900 对应像素 ≥3200×1800），
+  背景中没有残留本应可编辑的文字；文件名与 `page-map.json` 页序一致。
+- [ ] 背景位图之外没有整页截图、隐藏文字截图或 P2 检查用 1× 截图混入交付 PPTX；
+  未采集的页面、缺失页面或多余页面数为 0。
+
+### I. 文字计划与几何
+
+- [ ] `P3/text-plan.json` 的 `summary.texts` 满足
+  `采集节点数 − skipped 数 + splitNodes 数`；`skipped` 每项都带页码、节点 ID、原因，
+  拆行数记录在 `summary.splitNodes`，可直接对照截图复核。
+- [ ] 每个文本框使用精确 `a:lnSpc/a:spcPts`（`round(lineHeightPx × 0.6 × 100)`），
+  没有残留 `a:spcPct`；同一角色跨页字号、颜色、字重与 HTML 计算样式一致。
+- [ ] 多行文本按 `lines[]` 硬换行写入，PPT 软换行不会改变断行；`x` 或行距偏差
+  >2px 的混排节点已拆成逐行文本框，拆出的文本框标记 `source: p3-calibrated-split`。
+- [ ] 文本框 `left/top/width/height` 均在 1600×900 画布内；行高、字号与文本框
+  高度按 `calibration.json` 中对应字号/行高组合反推，未使用未经标定的常数。
+- [ ] 中西文混排行已按边界数补偿字距，末行右沿不越过 HTML 中该行的实测右边界
+  （允许约 2px 渲染误差）；纯中文、纯西文行未被补偿。
+
+### J. 渲染比对（逐页全量）
+
+- [ ] `render-pptx-slides.py` 能渲染全部页面，页数、顺序与 `deck.js` 一致；
+  渲染器为约定的 LibreOffice 后端，未用 WPS/PowerPoint 人工导出替代。
+- [ ] 逐页比对 `P3/comparison/` 的 side/overlay/diff 图，并记录每页 MAD；
+  不得只报均值。高于阈值的页面必须给出原因（glyph hinting、背景 JPEG 噪声、
+  字体替代等），并确认没有可归因于布局的错位。
+- [ ] 每页文字与背景的偏移在最优平移搜索下 ≤1px；标题允许 1–2px 渲染噪声，
+  但不得以此为理由忽略真实的文字缺失、重叠或裁切。
+- [ ] 截图放大检查白字卡片、深色底上的标题、页脚、竖排/半透明保留区，
+  确认没有下沿缺笔画、被色块覆盖或与相邻元素相撞。
+- [ ] 将结果写入 `P3/acceptance.md`：页数、文本框数、字体、平均/中位 MAD、
+  最高偏差页、已修问题、剩余限制、复现命令；未实测项（如 PowerPoint 自身渲染）
+  明确标注。
+
 ## 3. 修复与回归顺序
 
 按下列优先级处理，修复后立即复测受影响页面：

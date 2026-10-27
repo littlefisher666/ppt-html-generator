@@ -74,11 +74,44 @@ Cleanest pairs for both worlds: **20/12, 30/18, 40/24, 60/36, 80/48**.
 
 Avoid values like `1.52` unless there is a strong brand reason; simple ratios convert more predictably.
 
+### HTML → PPT 行间距（混合版）
+
+- 权威真值是 `P3/text-nodes.json` 的 `lineHeightPx` 与逐行 `lines[]`；P2 的
+  `text-metrics.json` / `coordinate-map.json` 仅作调试参考。
+- 必须写精确磅值：`a:lnSpc/a:spcPts val = round(lineHeightPx × 0.6 × 100)`。
+- 禁止用 `a:spcPct`：LibreOffice / PowerPoint 会把百分比乘在字体自然行高（微软雅黑约 1.205em）上，
+  `line-height: 1.3` 会被放大到约 1.57 倍。
+- 多行文字按 `lines[]` 硬换行，不依赖 PPT 软换行；文本框高度 = 行高 × 行数。
+- 基线由 `P3/calibration.json` 实测；缺组合时组装必须失败，不得用经验常数替代。
+
 ## Letter spacing
 
 - Body Chinese: **0**
 - Kickers / section labels: optional slight tracking
 - Never rely on tracking to make a title “fit” a single line — shorten the title instead
+
+### HTML → PPT 字间距
+
+- `P3/text-nodes.json` 应记录 `letterSpacingPx`；`normal` / 无效值记为 `0`。
+- 同步记录 `letterSpacingPt`（`px * 0.6`）便于直接写 OOXML；保留 `letterSpacingPtExact` 审计精确值。
+- 换算：`pt = letterSpacingPx * 0.6`，OOXML run 属性 `a:spc` 的 `val = round(pt * 100)`（单位：1/100 pt）。
+- 例：`letter-spacing: 2px` → `1.2pt` → `spc=120`。
+- `0` 可不写字符间距；非 0 必须写入。
+- 中西文混排行需按 CJK↔西文边界数补偿 LibreOffice 的自动额外间距：
+  `−0.25em × 边界数 ÷ 字间数`，限制在 ±0.2em 内；纯中文、纯西文行不补偿。
+- 中文 tracking 引擎差异可接受微小偏差；若已改变标签/标题疏密观感或换行，仍判失败。
+
+### HTML → PPT 文本框与换行真值（混合版）
+
+- 文字几何唯一来源是 `P3/text-nodes.json`：每个文本节点含 `boxes.layout/content/ink`、
+  `lines[]`（逐行文本与行盒）以及字体、字号、颜色、字重、行距、字距。
+- 混合版按 `lines[]` 的逐行矩形定位：`x = line.x`、`width = 节点最长行宽`；
+  `bitmapOnly` 节点（竖排或半透明）不生成文本框。
+- `fontSizePt = round(fontSizePx × 0.6)`；字体写实际命中字体（`fontFamilyUsed`），不得写死字体名。
+- 行内混排按行拆框：某行 `x` 与首行相差 >2px，或行距偏离 `lineHeightPx` >2px 时拆成独立文本框，
+  拆出的框标记 `source: p3-calibrated-split`。
+- 结构化主检顺序：内容完整性 → 字体/字号/颜色 → 文本框位置大小 → 行数/断行 → 行距/字距 → 截图比对。
+- 验收计数：`summary.texts = 采集节点数 − skipped + splitNodes`，并逐页查看 side/overlay/diff。
 
 ## Font stacks
 
@@ -133,6 +166,15 @@ function pxToPt(px) {
 
 function pxToIn(px) {
   return px / 120;
+}
+
+function lineHeightToSpcPct(lineHeightPx, fontSizePx) {
+  return Math.round((lineHeightPx / fontSizePx) * 100000);
+}
+
+function letterSpacingToSpc(letterSpacingPx) {
+  // OOXML a:spc uses 1/100 pt
+  return Math.round(letterSpacingPx * 0.6 * 100);
 }
 ```
 
